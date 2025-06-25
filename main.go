@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/urfave/cli/v2"
 )
@@ -30,29 +31,42 @@ func main() {
 				Usage:   "Port to serve on",
 			},
 		},
-		Action: func(c *cli.Context) error {
-			dir := c.String("dir")
-			port := c.Int("port")
-
-			// Check if directory exists
-			if _, err := os.Stat(dir); os.IsNotExist(err) {
-				return fmt.Errorf("directory %s does not exist", dir)
-			}
-
-			server := NewServer(dir)
-
-			addr := ":" + strconv.Itoa(port)
-			fmt.Printf("Server starting on http://localhost%s\n", addr)
-			fmt.Printf("Serving markdown files from: %s\n", dir)
-
-			return http.ListenAndServe(addr, server)
-		},
+		Action: runServer,
 	}
 
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func runServer(c *cli.Context) error {
+	dir := c.String("dir")
+	port := c.Int("port")
+
+	// Check if directory exists
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		return fmt.Errorf("directory %s does not exist", dir)
+	}
+
+	server := NewServer(dir)
+
+	addr := ":" + strconv.Itoa(port)
+	fmt.Printf("Server starting on http://localhost%s\n", addr)
+	fmt.Printf("Serving markdown files from: %s\n", dir)
+
+	httpServer := &http.Server{
+		Addr:         addr,
+		Handler:      server,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
+	}
+
+	if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		return fmt.Errorf("failed to listen and serve: %w", err)
+	}
+	return nil
 }
 
 type Server struct {
@@ -65,47 +79,49 @@ func NewServer(markdownDir string) *Server {
 	}
 }
 
-func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	if request.Method != "GET" {
+		http.Error(writer, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	path := strings.TrimPrefix(r.URL.Path, "/")
+	path := strings.TrimPrefix(request.URL.Path, "/")
 	if path == "" {
-		s.handleIndex(w, r)
+		s.handleIndex(writer, request)
 		return
 	}
 
-	s.handleMarkdownFile(w, r, path)
+	s.handleMarkdownFile(writer, request, path)
 }
 
-func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleIndex(writer http.ResponseWriter, request *http.Request) {
 	files, err := s.findMarkdownFiles()
 	if err != nil {
-		http.Error(w, "Error reading directory", http.StatusInternalServerError)
+		http.Error(writer, "Error reading directory", http.StatusInternalServerError)
 		return
 	}
 
 	component := IndexPage(files)
-	component.Render(r.Context(), w)
+	if err := component.Render(request.Context(), writer); err != nil {
+		log.Printf("error rendering index page: %v", err)
+	}
 }
 
 func (s *Server) handleMarkdownFile(
-	w http.ResponseWriter,
-	r *http.Request,
+	writer http.ResponseWriter,
+	request *http.Request,
 	filename string,
 ) {
 	content, err := s.getMarkdownContent(filename)
 	if err != nil {
-		http.Error(w, "File not found", http.StatusNotFound)
+		http.Error(writer, "File not found", http.StatusNotFound)
 		return
 	}
 
 	htmlContent, err := convertMarkdownToHTML(content)
 	if err != nil {
 		http.Error(
-			w,
+			writer,
 			"Error converting markdown",
 			http.StatusInternalServerError,
 		)
@@ -113,13 +129,15 @@ func (s *Server) handleMarkdownFile(
 	}
 
 	component := MarkdownPage(filename, htmlContent)
-	component.Render(r.Context(), w)
+	if err := component.Render(request.Context(), writer); err != nil {
+		log.Printf("error rendering markdown page: %v", err)
+	}
 }
 
 func (s *Server) findMarkdownFiles() ([]string, error) {
 	var files []string
 
-	err := filepath.Walk(
+	walkErr := filepath.Walk(
 		s.markdownDir,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -129,7 +147,7 @@ func (s *Server) findMarkdownFiles() ([]string, error) {
 			if !info.IsDir() && isMarkdownFile(info.Name()) {
 				relPath, err := filepath.Rel(s.markdownDir, path)
 				if err != nil {
-					return err
+					return fmt.Errorf("failed to get relative path for %s: %w", path, err)
 				}
 				files = append(files, relPath)
 			}
@@ -138,7 +156,11 @@ func (s *Server) findMarkdownFiles() ([]string, error) {
 		},
 	)
 
-	return files, err
+	if walkErr != nil {
+		return nil, fmt.Errorf("error walking directory %s: %w", s.markdownDir, walkErr)
+	}
+
+	return files, nil
 }
 
 func (s *Server) getMarkdownContent(filename string) ([]byte, error) {
@@ -148,13 +170,18 @@ func (s *Server) getMarkdownContent(filename string) ([]byte, error) {
 		return nil, err
 	}
 
-	return os.ReadFile(foundPath)
+	content, err := os.ReadFile(foundPath)
+	if err != nil {
+		return nil, fmt.Errorf("could not read file %s: %w", foundPath, err)
+	}
+	return content, nil
 }
 
 func (s *Server) findFileIgnoreCase(filename string) (string, error) {
 	baseNameWithoutExt := strings.ToLower(removeMarkdownExt(filename))
 
-	err := filepath.Walk(
+	var foundPath string
+	walkErr := filepath.Walk(
 		s.markdownDir,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -169,9 +196,9 @@ func (s *Server) findFileIgnoreCase(filename string) (string, error) {
 					// Found a match
 					relPath, err := filepath.Rel(s.markdownDir, path)
 					if err != nil {
-						return err
+						return fmt.Errorf("could not get relative path for %s: %w", path, err)
 					}
-					filename = relPath
+					foundPath = relPath
 					return filepath.SkipAll // Stop walking
 				}
 			}
@@ -180,13 +207,17 @@ func (s *Server) findFileIgnoreCase(filename string) (string, error) {
 		},
 	)
 
-	if err != nil && err != filepath.SkipAll {
-		return "", err
+	if walkErr != nil && walkErr != filepath.SkipAll {
+		return "", fmt.Errorf("error walking directory %s: %w", s.markdownDir, walkErr)
 	}
 
-	fullPath := filepath.Join(s.markdownDir, filename)
-	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+	if foundPath == "" {
 		return "", fmt.Errorf("file not found: %s", filename)
+	}
+
+	fullPath := filepath.Join(s.markdownDir, foundPath)
+	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+		return "", fmt.Errorf("file not found: %s", fullPath)
 	}
 
 	return fullPath, nil
