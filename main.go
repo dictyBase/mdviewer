@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -260,25 +261,19 @@ func (srv *Server) findFileIgnoreCase(filename string) (string, error) {
 }
 
 func isMarkdownFile(filename string) bool {
-	ext := strings.ToLower(filepath.Ext(filename))
-	markdownExts := []string{
-		".md",
-		".markdown",
-		".mdown",
-		".mkd",
-		".mkdn",
-		".mdwn",
-		".mdtxt",
-		".mdtext",
-	}
-
-	for _, mdExt := range markdownExts {
-		if ext == mdExt {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(
+		[]string{
+			".md",
+			".markdown",
+			".mdown",
+			".mkd",
+			".mkdn",
+			".mdwn",
+			".mdtxt",
+			".mdtext",
+		},
+		strings.ToLower(filepath.Ext(filename)),
+	)
 }
 
 func removeMarkdownExt(filename string) string {
