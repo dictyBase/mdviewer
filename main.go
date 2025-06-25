@@ -63,7 +63,8 @@ func runServer(c *cli.Context) error {
 		IdleTimeout:  120 * time.Second,
 	}
 
-	if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	if err := httpServer.ListenAndServe(); err != nil &&
+		err != http.ErrServerClosed {
 		return fmt.Errorf("failed to listen and serve: %w", err)
 	}
 	return nil
@@ -71,33 +72,38 @@ func runServer(c *cli.Context) error {
 
 type Server struct {
 	markdownDir string
+	mux         *http.ServeMux
 }
 
 func NewServer(markdownDir string) *Server {
-	return &Server{
+	s := &Server{
 		markdownDir: markdownDir,
+		mux:         http.NewServeMux(),
 	}
+	s.routes()
+	return s
+}
+
+func (s *Server) routes() {
+	s.mux.HandleFunc("GET /{path...}", s.handleMarkdownFile)
+	s.mux.HandleFunc("GET /", s.handleIndex)
 }
 
 func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	if request.Method != "GET" {
-		http.Error(writer, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	path := strings.TrimPrefix(request.URL.Path, "/")
-	if path == "" {
-		s.handleIndex(writer, request)
-		return
-	}
-
-	s.handleMarkdownFile(writer, request, path)
+	s.mux.ServeHTTP(writer, request)
 }
 
-func (s *Server) handleIndex(writer http.ResponseWriter, request *http.Request) {
+func (s *Server) handleIndex(
+	writer http.ResponseWriter,
+	request *http.Request,
+) {
 	files, err := s.findMarkdownFiles()
 	if err != nil {
-		http.Error(writer, "Error reading directory", http.StatusInternalServerError)
+		http.Error(
+			writer,
+			"Error reading directory",
+			http.StatusInternalServerError,
+		)
 		return
 	}
 
@@ -110,8 +116,8 @@ func (s *Server) handleIndex(writer http.ResponseWriter, request *http.Request) 
 func (s *Server) handleMarkdownFile(
 	writer http.ResponseWriter,
 	request *http.Request,
-	filename string,
 ) {
+	filename := request.PathValue("path")
 	content, err := s.getMarkdownContent(filename)
 	if err != nil {
 		http.Error(writer, "File not found", http.StatusNotFound)
@@ -147,7 +153,11 @@ func (s *Server) findMarkdownFiles() ([]string, error) {
 			if !info.IsDir() && isMarkdownFile(info.Name()) {
 				relPath, err := filepath.Rel(s.markdownDir, path)
 				if err != nil {
-					return fmt.Errorf("failed to get relative path for %s: %w", path, err)
+					return fmt.Errorf(
+						"failed to get relative path for %s: %w",
+						path,
+						err,
+					)
 				}
 				files = append(files, relPath)
 			}
@@ -157,7 +167,11 @@ func (s *Server) findMarkdownFiles() ([]string, error) {
 	)
 
 	if walkErr != nil {
-		return nil, fmt.Errorf("error walking directory %s: %w", s.markdownDir, walkErr)
+		return nil, fmt.Errorf(
+			"error walking directory %s: %w",
+			s.markdownDir,
+			walkErr,
+		)
 	}
 
 	return files, nil
@@ -189,15 +203,19 @@ func (s *Server) findFileIgnoreCase(filename string) (string, error) {
 			}
 
 			if !info.IsDir() && isMarkdownFile(info.Name()) {
-				fileNameWithoutExt := strings.ToLower(
-					removeMarkdownExt(info.Name()),
-				)
-				if fileNameWithoutExt == baseNameWithoutExt {
+				relPath, err := filepath.Rel(s.markdownDir, path)
+				if err != nil {
+					return fmt.Errorf(
+						"could not get relative path for %s: %w",
+						path,
+						err,
+					)
+				}
+
+				relPathWithoutExt := removeMarkdownExt(relPath)
+
+				if strings.ToLower(relPathWithoutExt) == baseNameWithoutExt {
 					// Found a match
-					relPath, err := filepath.Rel(s.markdownDir, path)
-					if err != nil {
-						return fmt.Errorf("could not get relative path for %s: %w", path, err)
-					}
 					foundPath = relPath
 					return filepath.SkipAll // Stop walking
 				}
@@ -208,7 +226,11 @@ func (s *Server) findFileIgnoreCase(filename string) (string, error) {
 	)
 
 	if walkErr != nil && walkErr != filepath.SkipAll {
-		return "", fmt.Errorf("error walking directory %s: %w", s.markdownDir, walkErr)
+		return "", fmt.Errorf(
+			"error walking directory %s: %w",
+			s.markdownDir,
+			walkErr,
+		)
 	}
 
 	if foundPath == "" {
