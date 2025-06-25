@@ -67,7 +67,6 @@ The application recognizes these markdown file extensions:
 - `.mdwn`
 - `.mdtxt`
 - `.mdtext`
-- `.text`
 
 ## File Access
 

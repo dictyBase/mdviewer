@@ -270,7 +270,6 @@ func isMarkdownFile(filename string) bool {
 		".mdwn",
 		".mdtxt",
 		".mdtext",
-		".text",
 	}
 
 	for _, mdExt := range markdownExts {
