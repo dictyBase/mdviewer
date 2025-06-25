@@ -85,12 +85,20 @@ func NewServer(markdownDir string) *Server {
 }
 
 func (s *Server) routes() {
-	s.mux.HandleFunc("GET /{path...}", s.handleMarkdownFile)
-	s.mux.HandleFunc("GET /", s.handleIndex)
+	s.mux.HandleFunc("GET /{path...}", s.handleFileOrIndex)
 }
 
 func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	s.mux.ServeHTTP(writer, request)
+}
+
+func (s *Server) handleFileOrIndex(writer http.ResponseWriter, request *http.Request) {
+	path := request.PathValue("path")
+	if path == "" {
+		s.handleIndex(writer, request)
+		return
+	}
+	s.handleMarkdownFile(writer, request)
 }
 
 func (s *Server) handleIndex(
