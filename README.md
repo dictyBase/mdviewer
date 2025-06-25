@@ -44,7 +44,7 @@ A simple markdown viewer web application built with Go, using:
 ```bash
 ./mdviewer
 ```
-This starts the server on port 8080 serving markdown files from the current directory.
+This starts the server on port 8888 serving markdown files from the current directory.
 
 ### Custom directory and port
 ```bash
@@ -53,7 +53,7 @@ This starts the server on port 8080 serving markdown files from the current dire
 
 ### Command line options
 - `--dir, -d`: Directory containing markdown files (default: current directory)
-- `--port, -p`: Port to serve on (default: 8080)
+- `--port, -p`: Port to serve on (default: 8888)
 - `--help, -h`: Show help
 
 ## Supported File Extensions
@@ -72,8 +72,8 @@ The application recognizes these markdown file extensions:
 ## File Access
 
 Files can be accessed via URLs without the markdown extension. For example:
-- `README.md` → `http://localhost:8080/README`
-- `docs/guide.md` → `http://localhost:8080/docs/guide`
+- `README.md` → `http://localhost:8888/README`
+- `docs/guide.md` → `http://localhost:8888/docs/guide`
 
 The matching is case-insensitive, so `readme`, `README`, or `ReAdMe` will all match `README.md`.
 
@@ -81,14 +81,14 @@ The matching is case-insensitive, so `readme`, `README`, or `ReAdMe` will all ma
 
 1. Create some markdown files in a directory
 2. Run the server: `./mdviewer --dir ./my-docs`
-3. Open your browser to `http://localhost:8080`
+3. Open your browser to `http://localhost:8888`
 4. Browse and view your markdown files with beautiful formatting!
 
 ## Development
 
 To run in development mode with live reloading:
 ```bash
-templ generate --watch --proxy="http://localhost:8080" --cmd="go run ."
+templ generate --watch --proxy="http://localhost:8888" --cmd="go run ."
 ```
 
 This will:
