@@ -1,9 +1,9 @@
 module mdviewer
 
-go 1.23
+go 1.23.0
 
 require (
-	github.com/a-h/templ v0.2.793
+	github.com/a-h/templ v0.3.906
 	github.com/urfave/cli/v2 v2.25.7
 	github.com/yuin/goldmark v1.7.8
 	github.com/yuin/goldmark-highlighting/v2 v2.0.0-20230729083705-37449abec8cc
