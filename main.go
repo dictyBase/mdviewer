@@ -40,9 +40,9 @@ func main() {
 	}
 }
 
-func runServer(c *cli.Context) error {
-	dir := c.String("dir")
-	port := c.Int("port")
+func runServer(cltx *cli.Context) error {
+	dir := cltx.String("dir")
+	port := cltx.Int("port")
 
 	// Check if directory exists
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
@@ -76,36 +76,42 @@ type Server struct {
 }
 
 func NewServer(markdownDir string) *Server {
-	s := &Server{
+	srv := &Server{
 		markdownDir: markdownDir,
 		mux:         http.NewServeMux(),
 	}
-	s.routes()
-	return s
+	srv.routes()
+	return srv
 }
 
-func (s *Server) routes() {
-	s.mux.HandleFunc("GET /{path...}", s.handleFileOrIndex)
+func (srv *Server) routes() {
+	srv.mux.HandleFunc("GET /{path...}", srv.handleFileOrIndex)
 }
 
-func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	s.mux.ServeHTTP(writer, request)
-}
-
-func (s *Server) handleFileOrIndex(writer http.ResponseWriter, request *http.Request) {
-	path := request.PathValue("path")
-	if path == "" {
-		s.handleIndex(writer, request)
-		return
-	}
-	s.handleMarkdownFile(writer, request)
-}
-
-func (s *Server) handleIndex(
+func (srv *Server) ServeHTTP(
 	writer http.ResponseWriter,
 	request *http.Request,
 ) {
-	files, err := s.findMarkdownFiles()
+	srv.mux.ServeHTTP(writer, request)
+}
+
+func (srv *Server) handleFileOrIndex(
+	writer http.ResponseWriter,
+	request *http.Request,
+) {
+	path := request.PathValue("path")
+	if path == "" {
+		srv.handleIndex(writer, request)
+		return
+	}
+	srv.handleMarkdownFile(writer, request)
+}
+
+func (srv *Server) handleIndex(
+	writer http.ResponseWriter,
+	request *http.Request,
+) {
+	files, err := srv.findMarkdownFiles()
 	if err != nil {
 		http.Error(
 			writer,
@@ -121,12 +127,12 @@ func (s *Server) handleIndex(
 	}
 }
 
-func (s *Server) handleMarkdownFile(
+func (srv *Server) handleMarkdownFile(
 	writer http.ResponseWriter,
 	request *http.Request,
 ) {
 	filename := request.PathValue("path")
-	content, err := s.getMarkdownContent(filename)
+	content, err := srv.getMarkdownContent(filename)
 	if err != nil {
 		http.Error(writer, "File not found", http.StatusNotFound)
 		return
@@ -148,18 +154,18 @@ func (s *Server) handleMarkdownFile(
 	}
 }
 
-func (s *Server) findMarkdownFiles() ([]string, error) {
+func (srv *Server) findMarkdownFiles() ([]string, error) {
 	var files []string
 
 	walkErr := filepath.Walk(
-		s.markdownDir,
+		srv.markdownDir,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
 
 			if !info.IsDir() && isMarkdownFile(info.Name()) {
-				relPath, err := filepath.Rel(s.markdownDir, path)
+				relPath, err := filepath.Rel(srv.markdownDir, path)
 				if err != nil {
 					return fmt.Errorf(
 						"failed to get relative path for %s: %w",
@@ -177,7 +183,7 @@ func (s *Server) findMarkdownFiles() ([]string, error) {
 	if walkErr != nil {
 		return nil, fmt.Errorf(
 			"error walking directory %s: %w",
-			s.markdownDir,
+			srv.markdownDir,
 			walkErr,
 		)
 	}
@@ -185,9 +191,9 @@ func (s *Server) findMarkdownFiles() ([]string, error) {
 	return files, nil
 }
 
-func (s *Server) getMarkdownContent(filename string) ([]byte, error) {
+func (srv *Server) getMarkdownContent(filename string) ([]byte, error) {
 	// Try to find the file with case-insensitive matching
-	foundPath, err := s.findFileIgnoreCase(filename)
+	foundPath, err := srv.findFileIgnoreCase(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -199,19 +205,19 @@ func (s *Server) getMarkdownContent(filename string) ([]byte, error) {
 	return content, nil
 }
 
-func (s *Server) findFileIgnoreCase(filename string) (string, error) {
+func (srv *Server) findFileIgnoreCase(filename string) (string, error) {
 	baseNameWithoutExt := strings.ToLower(removeMarkdownExt(filename))
 
 	var foundPath string
 	walkErr := filepath.Walk(
-		s.markdownDir,
+		srv.markdownDir,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
 
 			if !info.IsDir() && isMarkdownFile(info.Name()) {
-				relPath, err := filepath.Rel(s.markdownDir, path)
+				relPath, err := filepath.Rel(srv.markdownDir, path)
 				if err != nil {
 					return fmt.Errorf(
 						"could not get relative path for %s: %w",
@@ -236,7 +242,7 @@ func (s *Server) findFileIgnoreCase(filename string) (string, error) {
 	if walkErr != nil && walkErr != filepath.SkipAll {
 		return "", fmt.Errorf(
 			"error walking directory %s: %w",
-			s.markdownDir,
+			srv.markdownDir,
 			walkErr,
 		)
 	}
@@ -245,7 +251,7 @@ func (s *Server) findFileIgnoreCase(filename string) (string, error) {
 		return "", fmt.Errorf("file not found: %s", filename)
 	}
 
-	fullPath := filepath.Join(s.markdownDir, foundPath)
+	fullPath := filepath.Join(srv.markdownDir, foundPath)
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 		return "", fmt.Errorf("file not found: %s", fullPath)
 	}
