@@ -51,7 +51,7 @@ func runServer(cltx *cli.Context) error {
 
 	server := NewServer(dir)
 
-	addr := ":" + strconv.Itoa(port)
+	addr := fmt.Sprintf(":%s", strconv.Itoa(port))
 	fmt.Printf("Server starting on http://localhost%s\n", addr)
 	fmt.Printf("Serving markdown files from: %s\n", dir)
 
