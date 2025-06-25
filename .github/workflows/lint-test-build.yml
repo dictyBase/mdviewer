@@ -1,8 +1,6 @@
 name: Lint
 on:
-  pull_request:
-    branches-ignore:
-      - master
+  pull_request
 jobs:
   lint:
     uses: dictyBase/workflows/.github/workflows/golang-lint.yaml@develop
