@@ -1,0 +1,128 @@
+package main
+
+// Base layout template with Pico CSS
+templ BaseLayout(title string, content templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<meta name="color-scheme" content="light dark"/>
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
+			<title>{ title }</title>
+			<style>
+				.file-list {
+					list-style: none;
+					padding: 0;
+				}
+				.file-list li {
+					margin: 0.5rem 0;
+				}
+				.file-list a {
+					display: block;
+					padding: 0.75rem 1rem;
+					background: var(--pico-card-background-color);
+					border: 1px solid var(--pico-card-border-color);
+					border-radius: var(--pico-border-radius);
+					text-decoration: none;
+					transition: background-color 0.2s ease;
+				}
+				.file-list a:hover {
+					background: var(--pico-secondary-background);
+				}
+				.breadcrumb {
+					margin-bottom: 2rem;
+				}
+				.breadcrumb a {
+					text-decoration: none;
+					color: var(--pico-primary);
+				}
+				.breadcrumb a:hover {
+					text-decoration: underline;
+				}
+				pre {
+					overflow-x: auto;
+				}
+				code {
+					font-size: 0.875em;
+				}
+				.highlight {
+					background: var(--pico-code-background-color);
+					border-radius: var(--pico-border-radius);
+					padding: 1rem;
+					margin: 1rem 0;
+				}
+				blockquote {
+					border-left: 4px solid var(--pico-primary);
+					padding-left: 1rem;
+					margin-left: 0;
+					font-style: italic;
+				}
+				table {
+					margin: 1rem 0;
+				}
+				.task-list {
+					list-style: none;
+					padding-left: 0;
+				}
+				.task-list li {
+					margin: 0.25rem 0;
+				}
+				.task-list input[type="checkbox"] {
+					margin-right: 0.5rem;
+				}
+			</style>
+		</head>
+		<body>
+			<main class="container">
+				@content
+			</main>
+		</body>
+	</html>
+}
+
+// Index page showing all markdown files
+templ IndexPage(files []string) {
+	@BaseLayout("Markdown Viewer", IndexContent(files))
+}
+
+templ IndexContent(files []string) {
+	<header>
+		<h1>📚 Markdown Files</h1>
+		<p>Select a markdown file to view</p>
+	</header>
+	if len(files) == 0 {
+		<article>
+			<p>No markdown files found in the current directory.</p>
+		</article>
+	} else {
+		<section>
+			<ul class="file-list">
+				for _, file := range files {
+					<li>
+						<a href={ templ.SafeURL("/" + removeMarkdownExt(file)) }>
+							{ file }
+						</a>
+					</li>
+				}
+			</ul>
+		</section>
+	}
+}
+
+// Markdown file page
+templ MarkdownPage(filename string, content string) {
+	@BaseLayout(filename + " - Markdown Viewer", MarkdownContent(filename, content))
+}
+
+templ MarkdownContent(filename string, content string) {
+	<header class="breadcrumb">
+		<nav>
+			<a href="/">← Back to file list</a>
+		</nav>
+		<h1>{ filename }</h1>
+	</header>
+	<article>
+		@templ.Raw(content)
+	</article>
+}
