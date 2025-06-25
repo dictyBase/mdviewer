@@ -46,7 +46,7 @@ func runServer(cltx *cli.Context) error {
 
 	// Check if directory exists
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		return fmt.Errorf("directory %s does not exist", dir)
+		return cli.Exit(fmt.Sprintf("directory %s does not exist", dir), 1)
 	}
 
 	server := NewServer(dir)
@@ -65,7 +65,7 @@ func runServer(cltx *cli.Context) error {
 
 	if err := httpServer.ListenAndServe(); err != nil &&
 		err != http.ErrServerClosed {
-		return fmt.Errorf("failed to listen and serve: %w", err)
+		return cli.Exit(fmt.Sprintf("failed to listen and serve: %v", err), 1)
 	}
 	return nil
 }
