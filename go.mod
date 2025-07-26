@@ -3,7 +3,7 @@ module mdviewer
 go 1.23.0
 
 require (
-	github.com/a-h/templ v0.3.906
+	github.com/a-h/templ v0.3.924
 	github.com/urfave/cli/v2 v2.27.7
 	github.com/yuin/goldmark v1.7.12
 	github.com/yuin/goldmark-highlighting/v2 v2.0.0-20230729083705-37449abec8cc
