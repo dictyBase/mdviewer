@@ -10,6 +10,7 @@ import (
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
+	"go.abhg.dev/goldmark/mermaid"
 )
 
 func convertMarkdownToHTML(source []byte) (string, error) {
@@ -29,6 +30,9 @@ func convertMarkdownToHTML(source []byte) (string, error) {
 				),
 			),
 			meta.Meta, // YAML front matter
+			&mermaid.Extender{
+				RenderMode: mermaid.RenderModeClient, // Client-side rendering
+			},
 		),
 		goldmark.WithParserOptions(
 			parser.WithAutoHeadingID(), // Auto-generate heading IDs
