@@ -19,6 +19,12 @@ A simple markdown viewer web application built with Go, using:
   - Auto-linking
   - Footnotes
   - Definition lists
+- 📊 **Mermaid diagrams** with client-side rendering support:
+  - Flowcharts
+  - Sequence diagrams
+  - Pie charts
+  - Class diagrams
+  - And all other Mermaid diagram types
 - 📱 **Responsive design** works on mobile and desktop
 - 🚀 **Fast and lightweight** - pure Go with minimal dependencies
 
@@ -75,6 +81,38 @@ Files can be accessed via URLs without the markdown extension. For example:
 - `docs/guide.md` → `http://localhost:8888/docs/guide`
 
 The matching is case-insensitive, so `readme`, `README`, or `ReAdMe` will all match `README.md`.
+
+## Mermaid Diagrams
+
+MDViewer supports Mermaid diagrams with client-side rendering. Simply use fenced code blocks with the `mermaid` language:
+
+### Flowchart Example
+````markdown
+```mermaid
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Success]
+    B -->|No| D[Try Again]
+    D --> A
+```
+````
+
+### Sequence Diagram Example
+````markdown
+```mermaid
+sequenceDiagram
+    participant User
+    participant App
+    participant Server
+    
+    User->>App: Request
+    App->>Server: Process
+    Server->>App: Response
+    App->>User: Display
+```
+````
+
+Diagrams are rendered client-side using MermaidJS, so no server-side processing is required. All diagram types supported by Mermaid are available.
 
 ## Example
 
