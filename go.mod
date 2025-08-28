@@ -1,6 +1,8 @@
 module mdviewer
 
-go 1.23.0
+go 1.24
+
+toolchain go1.24.5
 
 require (
 	github.com/a-h/templ v0.3.943
@@ -16,5 +18,6 @@ require (
 	github.com/dlclark/regexp2 v1.7.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
+	go.abhg.dev/goldmark/mermaid v0.6.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
