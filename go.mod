@@ -7,7 +7,7 @@ toolchain go1.24.5
 require (
 	github.com/a-h/templ v0.3.977
 	github.com/urfave/cli/v2 v2.27.7
-	github.com/yuin/goldmark v1.7.13
+	github.com/yuin/goldmark v1.7.16
 	github.com/yuin/goldmark-highlighting/v2 v2.0.0-20230729083705-37449abec8cc
 	github.com/yuin/goldmark-meta v1.1.0
 	go.abhg.dev/goldmark/mermaid v0.6.0
