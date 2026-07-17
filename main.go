@@ -1,13 +1,15 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
+	"io/fs"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
@@ -31,6 +33,11 @@ func main() {
 				Value:   8888,
 				Usage:   "Port to serve on",
 			},
+			&cli.StringFlag{
+				Name:  "host",
+				Value: "127.0.0.1",
+				Usage: "Host interface to serve on",
+			},
 		},
 		Action: runServer,
 	}
@@ -44,6 +51,7 @@ func main() {
 func runServer(cltx *cli.Context) error {
 	dir := cltx.String("dir")
 	port := cltx.Int("port")
+	host := cltx.String("host")
 
 	// Check if directory exists
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
@@ -52,8 +60,8 @@ func runServer(cltx *cli.Context) error {
 
 	server := NewServer(dir)
 
-	addr := fmt.Sprintf(":%s", strconv.Itoa(port))
-	fmt.Printf("Server starting on http://localhost%s\n", addr)
+	addr := net.JoinHostPort(host, fmt.Sprintf("%d", port))
+	fmt.Printf("Server starting on http://%s\n", addr)
 	fmt.Printf("Serving markdown files from: %s\n", dir)
 
 	httpServer := &http.Server{
@@ -71,6 +79,18 @@ func runServer(cltx *cli.Context) error {
 	return nil
 }
 
+const mermaidRuntimePath = "/_mdviewer/assets/mermaid-11.12.2.min.js"
+
+//go:embed assets/mermaid-11.12.2.min.js
+var mermaidRuntime []byte
+
+var allowedAssetExtensions = map[string]struct{}{
+	".avif": {}, ".bmp": {}, ".css": {}, ".csv": {}, ".gif": {},
+	".jpeg": {}, ".jpg": {}, ".mp3": {}, ".mp4": {}, ".oga": {},
+	".ogg": {}, ".pdf": {}, ".png": {}, ".svg": {}, ".txt": {},
+	".wav": {}, ".webm": {}, ".webp": {},
+}
+
 type Server struct {
 	markdownDir string
 	mux         *http.ServeMux
@@ -86,13 +106,31 @@ func NewServer(markdownDir string) *Server {
 }
 
 func (srv *Server) routes() {
+	srv.mux.HandleFunc("GET "+mermaidRuntimePath, srv.handleMermaidRuntime)
 	srv.mux.HandleFunc("GET /{path...}", srv.handleFileOrIndex)
+}
+
+func (srv *Server) handleMermaidRuntime(writer http.ResponseWriter, request *http.Request) {
+	writer.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+	writer.Header().Set("Content-Type", "text/javascript; charset=utf-8")
+	_, _ = writer.Write(mermaidRuntime)
 }
 
 func (srv *Server) ServeHTTP(
 	writer http.ResponseWriter,
 	request *http.Request,
 ) {
+	writer.Header().Set("X-Content-Type-Options", "nosniff")
+	if request.URL.Path == mermaidRuntimePath {
+		srv.mux.ServeHTTP(writer, request)
+		return
+	}
+	if request.URL.Path != "/" {
+		if _, ok := localRequestPath(request.URL.Path); !ok {
+			http.NotFound(writer, request)
+			return
+		}
+	}
 	srv.mux.ServeHTTP(writer, request)
 }
 
@@ -105,7 +143,10 @@ func (srv *Server) handleFileOrIndex(
 		srv.handleIndex(writer, request)
 		return
 	}
-	srv.handleMarkdownFile(writer, request)
+	if srv.handleMarkdownFile(writer, request) {
+		return
+	}
+	srv.handleStaticAsset(writer, request)
 }
 
 func (srv *Server) handleIndex(
@@ -131,28 +172,99 @@ func (srv *Server) handleIndex(
 func (srv *Server) handleMarkdownFile(
 	writer http.ResponseWriter,
 	request *http.Request,
-) {
+) bool {
 	filename := request.PathValue("path")
 	content, err := srv.getMarkdownContent(filename)
 	if err != nil {
-		http.Error(writer, "File not found", http.StatusNotFound)
-		return
+		return false
 	}
 
-	htmlContent, err := convertMarkdownToHTML(content)
+	document, err := convertMarkdown(content)
 	if err != nil {
 		http.Error(
 			writer,
 			"Error converting markdown",
 			http.StatusInternalServerError,
 		)
-		return
+		return true
 	}
 
-	component := MarkdownPage(filename, htmlContent)
+	component := MarkdownPage(filename, document.HTML, document.Headings)
 	if err := component.Render(request.Context(), writer); err != nil {
 		log.Printf("error rendering markdown page: %v", err)
 	}
+	return true
+}
+
+func (srv *Server) handleStaticAsset(
+	writer http.ResponseWriter,
+	request *http.Request,
+) {
+	filename, ok := localRequestPath(request.URL.Path)
+	if !ok || isMarkdownFile(filename) || !isAllowedAsset(filename) {
+		http.NotFound(writer, request)
+		return
+	}
+
+	root, err := os.OpenRoot(srv.markdownDir)
+	if err != nil {
+		http.NotFound(writer, request)
+		return
+	}
+	defer root.Close()
+
+	file, err := root.Open(filename)
+	if err != nil {
+		http.NotFound(writer, request)
+		return
+	}
+	defer file.Close()
+
+	info, err := file.Stat()
+	if err != nil || !info.Mode().IsRegular() {
+		http.NotFound(writer, request)
+		return
+	}
+
+	if contentType := assetContentType(filename); contentType != "" {
+		writer.Header().Set("Content-Type", contentType)
+	}
+	http.ServeContent(writer, request, info.Name(), info.ModTime(), file)
+}
+
+var assetContentTypes = map[string]string{
+	".css": "text/css; charset=utf-8", ".csv": "text/csv; charset=utf-8", ".txt": "text/plain; charset=utf-8",
+	".pdf": "application/pdf", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+	".gif": "image/gif", ".webp": "image/webp", ".avif": "image/avif", ".bmp": "image/bmp",
+	".mp3": "audio/mpeg", ".mp4": "video/mp4",
+	".oga": "audio/ogg", ".ogg": "audio/ogg", ".wav": "audio/wav", ".webm": "video/webm",
+}
+
+func assetContentType(filename string) string {
+	return assetContentTypes[strings.ToLower(filepath.Ext(filename))]
+}
+
+func isAllowedAsset(filename string) bool {
+	ext := strings.ToLower(filepath.Ext(filename))
+	_, allowed := allowedAssetExtensions[ext]
+	return allowed
+}
+
+func localRequestPath(urlPath string) (string, bool) {
+	if !strings.HasPrefix(urlPath, "/") || strings.HasPrefix(urlPath, "//") {
+		return "", false
+	}
+
+	relativePath := strings.TrimPrefix(urlPath, "/")
+	if relativePath == "" || strings.Contains(relativePath, `\`) || !fs.ValidPath(relativePath) {
+		return "", false
+	}
+
+	localized, err := filepath.Localize(relativePath)
+	if err != nil {
+		return "", false
+	}
+	return localized, true
 }
 
 func (srv *Server) findMarkdownFiles() ([]string, error) {
@@ -193,13 +305,24 @@ func (srv *Server) findMarkdownFiles() ([]string, error) {
 }
 
 func (srv *Server) getMarkdownContent(filename string) ([]byte, error) {
-	// Try to find the file with case-insensitive matching
+	// Try to find the file with case-insensitive matching.
 	foundPath, err := srv.findFileIgnoreCase(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	content, err := os.ReadFile(foundPath)
+	relativePath, err := filepath.Rel(srv.markdownDir, foundPath)
+	if err != nil {
+		return nil, fmt.Errorf("could not resolve file %s: %w", foundPath, err)
+	}
+
+	root, err := os.OpenRoot(srv.markdownDir)
+	if err != nil {
+		return nil, fmt.Errorf("could not open root %s: %w", srv.markdownDir, err)
+	}
+	defer root.Close()
+
+	content, err := root.ReadFile(relativePath)
 	if err != nil {
 		return nil, fmt.Errorf("could not read file %s: %w", foundPath, err)
 	}

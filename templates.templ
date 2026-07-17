@@ -1,5 +1,7 @@
 package main
 
+import "strconv"
+
 // Base layout template with Pico CSS
 templ BaseLayout(title string, content templ.Component) {
 	<!DOCTYPE html>
@@ -97,6 +99,43 @@ templ BaseLayout(title string, content templ.Component) {
 					margin-left: 0;
 					font-style: italic;
 				}
+				.markdown-alert {
+					--alert-color: var(--pico-primary);
+					border-left: 4px solid var(--alert-color);
+					border-radius: var(--pico-border-radius);
+					background: color-mix(in srgb, var(--alert-color) 10%, transparent);
+					padding: 0.75rem 1rem;
+					margin: 1rem 0;
+					font-style: normal;
+				}
+				.markdown-alert-title {
+					color: var(--alert-color);
+					font-weight: 700;
+					margin-bottom: 0.5rem;
+				}
+				.markdown-alert > :last-child {
+					margin-bottom: 0;
+				}
+				.markdown-alert-note {
+					--alert-color: light-dark(#0969da, #58a6ff);
+				}
+				.markdown-alert-tip {
+					--alert-color: light-dark(#1a7f37, #3fb950);
+				}
+				.markdown-alert-important {
+					--alert-color: light-dark(#8250df, #bc8cff);
+				}
+				.markdown-alert-warning {
+					--alert-color: light-dark(#9a6700, #d29922);
+				}
+				.markdown-alert-caution {
+					--alert-color: light-dark(#cf222e, #ff7b72);
+				}
+				.mermaid-error {
+					color: var(--pico-del-color);
+					font-size: 0.875rem;
+					margin-top: 0.5rem;
+				}
 				table {
 					margin: 1rem 0;
 				}
@@ -119,6 +158,59 @@ templ BaseLayout(title string, content templ.Component) {
 					max-width: 100%;
 					height: auto;
 				}
+				.document-outline {
+					margin-bottom: 1.5rem;
+				}
+				.document-outline h2 {
+					font-size: 1rem;
+					margin-bottom: 0.5rem;
+				}
+				.document-outline ul {
+					list-style: none;
+					padding-left: 0;
+				}
+				.document-outline li {
+					margin: 0.25rem 0;
+				}
+				.document-outline a {
+					text-decoration: none;
+				}
+				.document-outline a:hover,
+				.document-outline a:focus-visible {
+					text-decoration: underline;
+				}
+				.outline-level-1 {
+					padding-left: 0;
+				}
+				.outline-level-2 {
+					padding-left: 0.75rem;
+				}
+				.outline-level-3 {
+					padding-left: 1.5rem;
+				}
+				.outline-level-4 {
+					padding-left: 2.25rem;
+				}
+				.outline-level-5 {
+					padding-left: 3rem;
+				}
+				.outline-level-6 {
+					padding-left: 3.75rem;
+				}
+				@media (min-width: 992px) {
+					.document-layout {
+						display: grid;
+						grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+						gap: 2rem;
+						align-items: start;
+					}
+					.document-outline {
+						position: sticky;
+						top: 1rem;
+						max-height: calc(100vh - 2rem);
+						overflow-y: auto;
+					}
+				}
 			</style>
 		</head>
 		<body>
@@ -126,6 +218,55 @@ templ BaseLayout(title string, content templ.Component) {
 				@content
 			</main>
 			<script>
+				const diagrams = [...document.querySelectorAll(".mermaid")];
+				const showMermaidError = (diagram) => {
+					if (diagram.nextElementSibling?.classList.contains("mermaid-error")) {
+						return;
+					}
+					const message = document.createElement("p");
+					message.className = "mermaid-error";
+					message.setAttribute("role", "status");
+					message.textContent = "This diagram could not be rendered. Mermaid source is shown above.";
+					diagram.insertAdjacentElement("afterend", message);
+				};
+				const restoreMermaidSource = (diagram, source) => {
+					diagram.replaceChildren(document.createTextNode(source));
+				};
+				const renderMermaid = async () => {
+					if (diagrams.length === 0) {
+						return;
+					}
+					const script = document.createElement("script");
+					script.src = "/_mdviewer/assets/mermaid-11.12.2.min.js";
+					script.onload = async () => {
+						try {
+							if (!globalThis.mermaid) {
+								throw new Error("Mermaid runtime unavailable");
+							}
+							globalThis.mermaid.initialize({ startOnLoad: false, securityLevel: "strict" });
+							for (const diagram of diagrams) {
+								const source = diagram.textContent ?? "";
+								try {
+									await globalThis.mermaid.run({ nodes: [diagram] });
+								} catch (error) {
+									restoreMermaidSource(diagram, source);
+									console.error("Unable to render Mermaid diagram", error);
+									showMermaidError(diagram);
+								}
+							}
+						} catch (error) {
+							console.error("Unable to render Mermaid diagrams", error);
+							diagrams.forEach((diagram) => showMermaidError(diagram));
+						}
+					};
+					script.onerror = (error) => {
+						console.error("Unable to load Mermaid runtime", error);
+						diagrams.forEach((diagram) => showMermaidError(diagram));
+					};
+					document.head.appendChild(script);
+				};
+				void renderMermaid();
+
 				const COPY_ICON = `<svg aria-hidden="true" focusable="false" height="16" viewBox="0 0 16 16" version="1.1" width="16" fill="currentColor"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path></svg>`;
 
 				const CHECK_ICON = `<svg aria-hidden="true" focusable="false" height="16" viewBox="0 0 16 16" version="1.1" width="16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path></svg>`;
@@ -210,18 +351,32 @@ templ IndexContent(files []string) {
 }
 
 // Markdown file page
-templ MarkdownPage(filename string, content string) {
-	@BaseLayout(filename + " - Markdown Viewer", MarkdownContent(filename, content))
+templ MarkdownPage(filename string, content string, headings []Heading) {
+	@BaseLayout(filename+" - Markdown Viewer", MarkdownContent(filename, content, headings))
 }
 
-templ MarkdownContent(filename string, content string) {
+templ MarkdownContent(filename string, content string, headings []Heading) {
 	<header class="breadcrumb">
 		<nav>
 			<a href="/">← Back to file list</a>
 		</nav>
 		<h1>{ filename }</h1>
 	</header>
-	<article>
-		@templ.Raw(content)
-	</article>
+	<div class="document-layout">
+		if len(headings) > 0 {
+			<nav class="document-outline" aria-labelledby="document-outline-title">
+				<h2 id="document-outline-title">On this page</h2>
+				<ul>
+					for _, heading := range headings {
+						<li class={ "outline-level-" + strconv.Itoa(heading.Level) }>
+							<a href={ templ.SafeURL("#" + heading.ID) }>{ heading.Text }</a>
+						</li>
+					}
+				</ul>
+			</nav>
+		}
+		<article>
+			@templ.Raw(content)
+		</article>
+	</div>
 }
