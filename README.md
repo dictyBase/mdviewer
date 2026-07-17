@@ -52,13 +52,14 @@ A simple markdown viewer web application built with Go, using:
 ```
 This starts the server on port 8888 serving markdown files from the current directory.
 
-### Custom directory and port
+### Custom directory, host, and port
 ```bash
-./mdviewer --dir /path/to/markdown/files --port 3000
+./mdviewer --dir /path/to/markdown/files --host 127.0.0.1 --port 3000
 ```
 
 ### Command line options
 - `--dir, -d`: Directory containing markdown files (default: current directory)
+- `--host`: Host interface to serve on (default: `127.0.0.1`; use `0.0.0.0` only on a trusted network)
 - `--port, -p`: Port to serve on (default: 8888)
 - `--help, -h`: Show help
 
@@ -74,7 +75,11 @@ The application recognizes these markdown file extensions:
 - `.mdtxt`
 - `.mdtext`
 
-## File Access
+## File Access and Trust Model
+
+MDViewer is intended for trusted local documentation trees. It renders Markdown as HTML, including raw HTML supported by Goldmark, so do not point it at untrusted repositories. The server binds to `127.0.0.1` by default; use `--host 0.0.0.0` only when you deliberately want network access.
+
+Non-Markdown files are served only when they have an allowed documentation-asset extension (images, PDF, common audio/video, CSS, CSV, and plain text). Files such as `.env`, `.html`, `.js`, binaries, and extensionless files are not served. Markdown URLs always render the document; raw Markdown download is not currently supported.
 
 Files can be accessed via URLs without the markdown extension. For example:
 - `README.md` → `http://localhost:8888/README`
@@ -112,7 +117,7 @@ sequenceDiagram
 ```
 ````
 
-Diagrams are rendered client-side using MermaidJS, so no server-side processing is required. All diagram types supported by Mermaid are available.
+Diagrams are rendered client-side using the pinned MermaidJS runtime bundled with MDViewer, so no external CDN or server-side processing is required. If a browser cannot render a diagram, the readable Mermaid source remains visible and the page shows a fallback message. All diagram types supported by Mermaid are available.
 
 ## Example
 
