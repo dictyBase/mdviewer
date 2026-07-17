@@ -49,7 +49,7 @@ func TestBaseLayoutInitializesMermaidSecurelyAndConditionally(t *testing.T) {
 	}
 }
 
-func TestMarkdownContentRendersAccessibleResponsiveOutline(t *testing.T) {
+func TestMarkdownContentDoesNotRenderOutline(t *testing.T) {
 	t.Parallel()
 
 	headings := []Heading{
@@ -57,29 +57,28 @@ func TestMarkdownContentRendersAccessibleResponsiveOutline(t *testing.T) {
 		{Level: 3, ID: "details", Text: "Details"},
 	}
 	html := renderComponent(t, BaseLayout("Test", MarkdownContent("fixture.md", "<h1>Overview</h1>", headings)))
-	for _, want := range []string{
-		`<nav class="document-outline" aria-labelledby="document-outline-title">`,
-		`id="document-outline-title">On this page</h2>`,
-		`href="#overview"`,
-		`href="#details"`,
-		`class="outline-level-1"`,
-		`class="outline-level-3"`,
-		`@media (min-width: 992px)`,
-		`.document-layout`,
-		`position: sticky;`,
+	for _, wanted := range []string{
+		"← Back",
+		"github-file-box",
+		"github-file-header",
+		"github-tab active",
+		"Preview",
+		"fixture.md",
+		"<h1>Overview</h1>",
 	} {
-		if !strings.Contains(html, want) {
-			t.Errorf("rendered outline does not contain %q", want)
+		if !strings.Contains(html, wanted) {
+			t.Errorf("rendered document is missing preserved content %q", wanted)
 		}
 	}
-}
-
-func TestMarkdownContentOmitsOutlineWithoutHeadings(t *testing.T) {
-	t.Parallel()
-
-	html := renderComponent(t, MarkdownContent("fixture.md", "<p>No headings</p>", nil))
-	if strings.Contains(html, "document-outline") || strings.Contains(html, "On this page") {
-		t.Errorf("heading-free document contains outline: %s", html)
+	for _, unwanted := range []string{
+		"document-outline",
+		"On this page",
+		"document-layout",
+		"outline-level-",
+	} {
+		if strings.Contains(html, unwanted) {
+			t.Errorf("rendered document contains removed outline marker %q", unwanted)
+		}
 	}
 }
 

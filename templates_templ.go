@@ -8,8 +8,6 @@ package main
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "strconv"
-
 // Base layout template with Pico CSS
 func BaseLayout(title string, content templ.Component) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -39,13 +37,13 @@ func BaseLayout(title string, content templ.Component) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 14, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 12, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><style>\n\t\t\t\t.file-list {\n\t\t\t\t\tlist-style: none;\n\t\t\t\t\tpadding: 0;\n\t\t\t\t}\n\t\t\t\t.file-list li {\n\t\t\t\t\tmargin: 0.5rem 0;\n\t\t\t\t}\n\t\t\t\t.file-list a {\n\t\t\t\t\tdisplay: block;\n\t\t\t\t\tpadding: 0.75rem 1rem;\n\t\t\t\t\tbackground: var(--pico-card-background-color);\n\t\t\t\t\tborder: 1px solid var(--pico-card-border-color);\n\t\t\t\t\tborder-radius: var(--pico-border-radius);\n\t\t\t\t\ttext-decoration: none;\n\t\t\t\t\ttransition: background-color 0.2s ease;\n\t\t\t\t}\n\t\t\t\t.file-list a:hover {\n\t\t\t\t\tbackground: var(--pico-secondary-background);\n\t\t\t\t}\n\t\t\t\t.breadcrumb {\n\t\t\t\t\tmargin-bottom: 2rem;\n\t\t\t\t}\n\t\t\t\t.breadcrumb a {\n\t\t\t\t\ttext-decoration: none;\n\t\t\t\t\tcolor: var(--pico-primary);\n\t\t\t\t}\n\t\t\t\t.breadcrumb a:hover {\n\t\t\t\t\ttext-decoration: underline;\n\t\t\t\t}\n\t\t\t\tpre {\n\t\t\t\t\toverflow-x: auto;\n\t\t\t\t}\n\t\t\t\t.code-block-wrapper {\n\t\t\t\t\tposition: relative;\n\t\t\t\t}\n\t\t\t\t.code-block-wrapper pre {\n\t\t\t\t\tpadding-right: 2.5rem;\n\t\t\t\t}\n\t\t\t\t.copy-btn {\n\t\t\t\t\tposition: absolute;\n\t\t\t\t\ttop: 0.5rem;\n\t\t\t\t\tright: 0.5rem;\n\t\t\t\t\twidth: 1.75rem;\n\t\t\t\t\theight: 1.75rem;\n\t\t\t\t\tdisplay: flex;\n\t\t\t\t\talign-items: center;\n\t\t\t\t\tjustify-content: center;\n\t\t\t\t\tpadding: 0;\n\t\t\t\t\tline-height: 1;\n\t\t\t\t\tborder-radius: var(--pico-border-radius);\n\t\t\t\t\tborder: 1px solid var(--pico-card-border-color);\n\t\t\t\t\tbackground: var(--pico-card-background-color);\n\t\t\t\t\tcolor: inherit;\n\t\t\t\t\tcursor: pointer;\n\t\t\t\t}\n\t\t\t\t.copy-btn:hover {\n\t\t\t\t\tcolor: var(--pico-primary);\n\t\t\t\t\tborder-color: currentColor;\n\t\t\t\t}\n\t\t\t\t.copy-btn svg {\n\t\t\t\t\tdisplay: block;\n\t\t\t\t\tflex: none;\n\t\t\t\t}\n\t\t\t\t.copy-btn.copied {\n\t\t\t\t\tcolor: var(--pico-primary);\n\t\t\t\t\tborder-color: currentColor;\n\t\t\t\t}\n\t\t\t\t.copy-btn.error {\n\t\t\t\t\tcolor: var(--pico-del-color);\n\t\t\t\t\tborder-color: currentColor;\n\t\t\t\t}\n\t\t\t\tcode {\n\t\t\t\t\tfont-size: 0.875em;\n\t\t\t\t}\n\t\t\t\t.highlight {\n\t\t\t\t\tbackground: var(--pico-code-background-color);\n\t\t\t\t\tborder-radius: var(--pico-border-radius);\n\t\t\t\t\tpadding: 1rem;\n\t\t\t\t\tmargin: 1rem 0;\n\t\t\t\t}\n\t\t\t\tblockquote {\n\t\t\t\t\tborder-left: 4px solid var(--pico-primary);\n\t\t\t\t\tpadding-left: 1rem;\n\t\t\t\t\tmargin-left: 0;\n\t\t\t\t\tfont-style: italic;\n\t\t\t\t}\n\t\t\t\t.markdown-alert {\n\t\t\t\t\t--alert-color: var(--pico-primary);\n\t\t\t\t\tborder-left: 4px solid var(--alert-color);\n\t\t\t\t\tborder-radius: var(--pico-border-radius);\n\t\t\t\t\tbackground: color-mix(in srgb, var(--alert-color) 10%, transparent);\n\t\t\t\t\tpadding: 0.75rem 1rem;\n\t\t\t\t\tmargin: 1rem 0;\n\t\t\t\t\tfont-style: normal;\n\t\t\t\t}\n\t\t\t\t.markdown-alert-title {\n\t\t\t\t\tcolor: var(--alert-color);\n\t\t\t\t\tfont-weight: 700;\n\t\t\t\t\tmargin-bottom: 0.5rem;\n\t\t\t\t}\n\t\t\t\t.markdown-alert > :last-child {\n\t\t\t\t\tmargin-bottom: 0;\n\t\t\t\t}\n\t\t\t\t.markdown-alert-note {\n\t\t\t\t\t--alert-color: light-dark(#0969da, #58a6ff);\n\t\t\t\t}\n\t\t\t\t.markdown-alert-tip {\n\t\t\t\t\t--alert-color: light-dark(#1a7f37, #3fb950);\n\t\t\t\t}\n\t\t\t\t.markdown-alert-important {\n\t\t\t\t\t--alert-color: light-dark(#8250df, #bc8cff);\n\t\t\t\t}\n\t\t\t\t.markdown-alert-warning {\n\t\t\t\t\t--alert-color: light-dark(#9a6700, #d29922);\n\t\t\t\t}\n\t\t\t\t.markdown-alert-caution {\n\t\t\t\t\t--alert-color: light-dark(#cf222e, #ff7b72);\n\t\t\t\t}\n\t\t\t\t.mermaid-error {\n\t\t\t\t\tcolor: var(--pico-del-color);\n\t\t\t\t\tfont-size: 0.875rem;\n\t\t\t\t\tmargin-top: 0.5rem;\n\t\t\t\t}\n\t\t\t\ttable {\n\t\t\t\t\tmargin: 1rem 0;\n\t\t\t\t}\n\t\t\t\t.task-list {\n\t\t\t\t\tlist-style: none;\n\t\t\t\t\tpadding-left: 0;\n\t\t\t\t}\n\t\t\t\t.task-list li {\n\t\t\t\t\tmargin: 0.25rem 0;\n\t\t\t\t}\n\t\t\t\t.task-list input[type=\"checkbox\"] {\n\t\t\t\t\tmargin-right: 0.5rem;\n\t\t\t\t}\n\t\t\t\t.mermaid {\n\t\t\t\t\tdisplay: flex;\n\t\t\t\t\tjustify-content: center;\n\t\t\t\t\tmargin: 1.5rem 0;\n\t\t\t\t}\n\t\t\t\t.mermaid svg {\n\t\t\t\t\tmax-width: 100%;\n\t\t\t\t\theight: auto;\n\t\t\t\t}\n\t\t\t\t.document-outline {\n\t\t\t\t\tmargin-bottom: 1.5rem;\n\t\t\t\t}\n\t\t\t\t.document-outline h2 {\n\t\t\t\t\tfont-size: 1rem;\n\t\t\t\t\tmargin-bottom: 0.5rem;\n\t\t\t\t}\n\t\t\t\t.document-outline ul {\n\t\t\t\t\tlist-style: none;\n\t\t\t\t\tpadding-left: 0;\n\t\t\t\t}\n\t\t\t\t.document-outline li {\n\t\t\t\t\tmargin: 0.25rem 0;\n\t\t\t\t}\n\t\t\t\t.document-outline a {\n\t\t\t\t\ttext-decoration: none;\n\t\t\t\t}\n\t\t\t\t.document-outline a:hover,\n\t\t\t\t.document-outline a:focus-visible {\n\t\t\t\t\ttext-decoration: underline;\n\t\t\t\t}\n\t\t\t\t.outline-level-1 {\n\t\t\t\t\tpadding-left: 0;\n\t\t\t\t}\n\t\t\t\t.outline-level-2 {\n\t\t\t\t\tpadding-left: 0.75rem;\n\t\t\t\t}\n\t\t\t\t.outline-level-3 {\n\t\t\t\t\tpadding-left: 1.5rem;\n\t\t\t\t}\n\t\t\t\t.outline-level-4 {\n\t\t\t\t\tpadding-left: 2.25rem;\n\t\t\t\t}\n\t\t\t\t.outline-level-5 {\n\t\t\t\t\tpadding-left: 3rem;\n\t\t\t\t}\n\t\t\t\t.outline-level-6 {\n\t\t\t\t\tpadding-left: 3.75rem;\n\t\t\t\t}\n\t\t\t\t@media (min-width: 992px) {\n\t\t\t\t\t.document-layout {\n\t\t\t\t\t\tdisplay: grid;\n\t\t\t\t\t\tgrid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);\n\t\t\t\t\t\tgap: 2rem;\n\t\t\t\t\t\talign-items: start;\n\t\t\t\t\t}\n\t\t\t\t\t.document-outline {\n\t\t\t\t\t\tposition: sticky;\n\t\t\t\t\t\ttop: 1rem;\n\t\t\t\t\t\tmax-height: calc(100vh - 2rem);\n\t\t\t\t\t\toverflow-y: auto;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t</style></head><body><main class=\"container\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><style>\n\t\t\t\t.file-list {\n\t\t\t\t\tlist-style: none;\n\t\t\t\t\tpadding: 0;\n\t\t\t\t}\n\t\t\t\t.file-list li {\n\t\t\t\t\tmargin: 0.5rem 0;\n\t\t\t\t}\n\t\t\t\t.file-list a {\n\t\t\t\t\tdisplay: block;\n\t\t\t\t\tpadding: 0.75rem 1rem;\n\t\t\t\t\tbackground: var(--pico-card-background-color);\n\t\t\t\t\tborder: 1px solid var(--pico-card-border-color);\n\t\t\t\t\tborder-radius: var(--pico-border-radius);\n\t\t\t\t\ttext-decoration: none;\n\t\t\t\t\ttransition: background-color 0.2s ease;\n\t\t\t\t}\n\t\t\t\t.file-list a:hover {\n\t\t\t\t\tbackground: var(--pico-secondary-background);\n\t\t\t\t}\n\t\t\t\tpre {\n\t\t\t\t\toverflow-x: auto;\n\t\t\t\t}\n\t\t\t\t.code-block-wrapper {\n\t\t\t\t\tposition: relative;\n\t\t\t\t}\n\t\t\t\t.code-block-wrapper pre {\n\t\t\t\t\tpadding-right: 2.5rem;\n\t\t\t\t}\n\t\t\t\t.copy-btn {\n\t\t\t\t\tposition: absolute;\n\t\t\t\t\ttop: 0.5rem;\n\t\t\t\t\tright: 0.5rem;\n\t\t\t\t\twidth: 1.75rem;\n\t\t\t\t\theight: 1.75rem;\n\t\t\t\t\tdisplay: flex;\n\t\t\t\t\talign-items: center;\n\t\t\t\t\tjustify-content: center;\n\t\t\t\t\tpadding: 0;\n\t\t\t\t\tline-height: 1;\n\t\t\t\t\tborder-radius: var(--pico-border-radius);\n\t\t\t\t\tborder: 1px solid var(--pico-card-border-color);\n\t\t\t\t\tbackground: var(--pico-card-background-color);\n\t\t\t\t\tcolor: inherit;\n\t\t\t\t\tcursor: pointer;\n\t\t\t\t}\n\t\t\t\t.copy-btn:hover {\n\t\t\t\t\tcolor: var(--pico-primary);\n\t\t\t\t\tborder-color: currentColor;\n\t\t\t\t}\n\t\t\t\t.copy-btn svg {\n\t\t\t\t\tdisplay: block;\n\t\t\t\t\tflex: none;\n\t\t\t\t}\n\t\t\t\t.copy-btn.copied {\n\t\t\t\t\tcolor: var(--pico-primary);\n\t\t\t\t\tborder-color: currentColor;\n\t\t\t\t}\n\t\t\t\t.copy-btn.error {\n\t\t\t\t\tcolor: var(--pico-del-color);\n\t\t\t\t\tborder-color: currentColor;\n\t\t\t\t}\n\t\t\t\tcode {\n\t\t\t\t\tfont-size: 0.875em;\n\t\t\t\t}\n\t\t\t\t.highlight {\n\t\t\t\t\tbackground: var(--pico-code-background-color);\n\t\t\t\t\tborder-radius: var(--pico-border-radius);\n\t\t\t\t\tpadding: 1rem;\n\t\t\t\t\tmargin: 1rem 0;\n\t\t\t\t}\n\t\t\t\tblockquote {\n\t\t\t\t\tborder-left: 4px solid var(--pico-primary);\n\t\t\t\t\tpadding-left: 1rem;\n\t\t\t\t\tmargin-left: 0;\n\t\t\t\t\tfont-style: italic;\n\t\t\t\t}\n\t\t\t\t.markdown-alert {\n\t\t\t\t\t--alert-color: var(--pico-primary);\n\t\t\t\t\tborder-left: 4px solid var(--alert-color);\n\t\t\t\t\tborder-radius: var(--pico-border-radius);\n\t\t\t\t\tbackground: color-mix(in srgb, var(--alert-color) 10%, transparent);\n\t\t\t\t\tpadding: 0.75rem 1rem;\n\t\t\t\t\tmargin: 1rem 0;\n\t\t\t\t\tfont-style: normal;\n\t\t\t\t}\n\t\t\t\t.markdown-alert-title {\n\t\t\t\t\tcolor: var(--alert-color);\n\t\t\t\t\tfont-weight: 700;\n\t\t\t\t\tmargin-bottom: 0.5rem;\n\t\t\t\t}\n\t\t\t\t.markdown-alert > :last-child {\n\t\t\t\t\tmargin-bottom: 0;\n\t\t\t\t}\n\t\t\t\t.markdown-alert-note {\n\t\t\t\t\t--alert-color: light-dark(#0969da, #58a6ff);\n\t\t\t\t}\n\t\t\t\t.markdown-alert-tip {\n\t\t\t\t\t--alert-color: light-dark(#1a7f37, #3fb950);\n\t\t\t\t}\n\t\t\t\t.markdown-alert-important {\n\t\t\t\t\t--alert-color: light-dark(#8250df, #bc8cff);\n\t\t\t\t}\n\t\t\t\t.markdown-alert-warning {\n\t\t\t\t\t--alert-color: light-dark(#9a6700, #d29922);\n\t\t\t\t}\n\t\t\t\t.markdown-alert-caution {\n\t\t\t\t\t--alert-color: light-dark(#cf222e, #ff7b72);\n\t\t\t\t}\n\t\t\t\t.mermaid-error {\n\t\t\t\t\tcolor: var(--pico-del-color);\n\t\t\t\t\tfont-size: 0.875rem;\n\t\t\t\t\tmargin-top: 0.5rem;\n\t\t\t\t}\n\t\t\t\ttable {\n\t\t\t\t\tmargin: 1rem 0;\n\t\t\t\t}\n\t\t\t\t.task-list {\n\t\t\t\t\tlist-style: none;\n\t\t\t\t\tpadding-left: 0;\n\t\t\t\t}\n\t\t\t\t.task-list li {\n\t\t\t\t\tmargin: 0.25rem 0;\n\t\t\t\t}\n\t\t\t\t.task-list input[type=\"checkbox\"] {\n\t\t\t\t\tmargin-right: 0.5rem;\n\t\t\t\t}\n\t\t\t\t.mermaid {\n\t\t\t\t\tdisplay: flex;\n\t\t\t\t\tjustify-content: center;\n\t\t\t\t\tmargin: 1.5rem 0;\n\t\t\t\t}\n\t\t\t\t.mermaid svg {\n\t\t\t\t\tmax-width: 100%;\n\t\t\t\t\theight: auto;\n\t\t\t\t}\n\n\t\t\t\t/* GitHub-style file box */\n\t\t\t\t.github-breadcrumb {\n\t\t\t\t\tdisplay: flex;\n\t\t\t\t\talign-items: center;\n\t\t\t\t\tgap: 0.5rem;\n\t\t\t\t\tmargin-bottom: 0.75rem;\n\t\t\t\t\tfont-size: 0.875rem;\n\t\t\t\t}\n\t\t\t\t.github-breadcrumb a {\n\t\t\t\t\ttext-decoration: none;\n\t\t\t\t\tcolor: var(--pico-primary);\n\t\t\t\t}\n\t\t\t\t.github-breadcrumb-path {\n\t\t\t\t\tcolor: var(--pico-muted-color);\n\t\t\t\t}\n\n\t\t\t\t.github-file-box {\n\t\t\t\t\tbackground: var(--pico-background-color);\n\t\t\t\t\tborder: 1px solid var(--pico-card-border-color);\n\t\t\t\t\tborder-radius: var(--pico-border-radius);\n\t\t\t\t\toverflow: hidden;\n\t\t\t\t}\n\n\t\t\t\t.github-file-header {\n\t\t\t\t\tbackground: var(--pico-card-background-color);\n\t\t\t\t\tborder-bottom: 1px solid var(--pico-card-border-color);\n\t\t\t\t\tpadding: 0.5rem 1rem;\n\t\t\t\t\tdisplay: flex;\n\t\t\t\t\talign-items: center;\n\t\t\t\t\tjustify-content: space-between;\n\t\t\t\t\tfont-size: 0.8125rem;\n\t\t\t\t}\n\t\t\t\t.github-file-header-tabs {\n\t\t\t\t\tdisplay: flex;\n\t\t\t\t\tgap: 0.25rem;\n\t\t\t\t}\n\t\t\t\t.github-tab {\n\t\t\t\t\tpadding: 0.25rem 0.75rem;\n\t\t\t\t\tborder-radius: var(--pico-border-radius);\n\t\t\t\t\tcursor: default;\n\t\t\t\t\tcolor: var(--pico-muted-color);\n\t\t\t\t}\n\t\t\t\t.github-tab.active {\n\t\t\t\t\tbackground: var(--pico-background-color);\n\t\t\t\t\tcolor: var(--pico-color);\n\t\t\t\t\tfont-weight: 500;\n\t\t\t\t}\n\t\t\t\t.github-file-header-actions {\n\t\t\t\t\tdisplay: flex;\n\t\t\t\t\talign-items: center;\n\t\t\t\t\tgap: 0.75rem;\n\t\t\t\t\tcolor: var(--pico-muted-color);\n\t\t\t\t\tfont-size: 0.8125rem;\n\t\t\t\t}\n\n\t\t\t\t/* Table grid */\n\t\t\t\t.github-file-box article table {\n\t\t\t\t\tborder-collapse: collapse;\n\t\t\t\t\twidth: 100%;\n\t\t\t\t\tborder: 1px solid var(--pico-card-border-color);\n\t\t\t\t}\n\t\t\t\t.github-file-box article th,\n\t\t\t\t.github-file-box article td {\n\t\t\t\t\tborder: 1px solid var(--pico-card-border-color);\n\t\t\t\t\tpadding: 6px 13px;\n\t\t\t\t}\n\t\t\t\t.github-file-box article tr:nth-child(even) {\n\t\t\t\t\tbackground-color: var(--pico-secondary-background);\n\t\t\t\t}\n\t\t\t\t.github-file-box article th {\n\t\t\t\t\tbackground-color: var(--pico-card-background-color);\n\t\t\t\t\tfont-weight: 600;\n\t\t\t\t}\n\n\t\t\t\t/* Heading underlines */\n\t\t\t\t.github-file-box article h1,\n\t\t\t\t.github-file-box article h2 {\n\t\t\t\t\tborder-bottom: 1px solid var(--pico-card-border-color);\n\t\t\t\t\tpadding-bottom: 0.3em;\n\t\t\t\t}\n\n\t\t\t\t/* Inline code */\n\t\t\t\t.github-file-box article :not(pre) > code {\n\t\t\t\t\tbackground-color: var(--pico-code-background-color);\n\t\t\t\t\tpadding: 0.2em 0.4em;\n\t\t\t\t\tborder-radius: 6px;\n\t\t\t\t\tfont-size: 85%;\n\t\t\t\t}\n\t\t\t</style></head><body><main class=\"container\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -134,7 +132,7 @@ func IndexContent(files []string) templ.Component {
 				var templ_7745c5c3_Var5 templ.SafeURL
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL("/" + removeMarkdownExt(file)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 343, Col: 60}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 367, Col: 60}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -147,7 +145,7 @@ func IndexContent(files []string) templ.Component {
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(file)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 344, Col: 13}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 368, Col: 13}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
@@ -218,84 +216,33 @@ func MarkdownContent(filename string, content string, headings []Heading) templ.
 			templ_7745c5c3_Var8 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<header class=\"breadcrumb\"><nav><a href=\"/\">← Back to file list</a></nav><h1>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"github-breadcrumb\"><a href=\"/\">← Back</a> <span class=\"github-breadcrumb-path\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(filename)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 363, Col: 16}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 385, Col: 49}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</h1></header><div class=\"document-layout\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span></div><div class=\"github-file-box\"><div class=\"github-file-header\"><div class=\"github-file-header-tabs\"><span class=\"github-tab active\">Preview</span> <span class=\"github-tab\">Code</span> <span class=\"github-tab\">Blame</span></div><div class=\"github-file-header-actions\"><span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if len(headings) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<nav class=\"document-outline\" aria-labelledby=\"document-outline-title\"><h2 id=\"document-outline-title\">On this page</h2><ul>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			for _, heading := range headings {
-				var templ_7745c5c3_Var10 = []any{"outline-level-" + strconv.Itoa(heading.Level)}
-				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var10...)
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<li class=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var11 string
-				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.CSSClasses(templ_7745c5c3_Var10).String())
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 1, Col: 0}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\"><a href=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var12 templ.SafeURL
-				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL("#" + heading.ID))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 372, Col: 48}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var13 string
-				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(heading.Text)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 372, Col: 65}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</a></li>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</ul></nav>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
+		var templ_7745c5c3_Var10 string
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(filename)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 395, Col: 20}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<article>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span></div></div><article>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -303,7 +250,7 @@ func MarkdownContent(filename string, content string, headings []Heading) templ.
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</article></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</article></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
