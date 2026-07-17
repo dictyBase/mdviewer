@@ -43,6 +43,28 @@ templ BaseLayout(title string, content templ.Component) {
 				pre {
 					overflow-x: auto;
 				}
+				.code-block-wrapper {
+					position: relative;
+				}
+				.code-block-wrapper pre {
+					padding-right: 2.5rem;
+				}
+				.copy-btn {
+					position: absolute;
+					top: 0.5rem;
+					right: 0.5rem;
+					padding: 0.25rem 0.5rem;
+					font-size: 0.75rem;
+					line-height: 1;
+					border-radius: var(--pico-border-radius);
+					border: 1px solid var(--pico-card-border-color);
+					background: var(--pico-card-background-color);
+					color: inherit;
+					cursor: pointer;
+				}
+				.copy-btn.copied {
+					color: var(--pico-primary);
+				}
 				code {
 					font-size: 0.875em;
 				}
@@ -86,6 +108,47 @@ templ BaseLayout(title string, content templ.Component) {
 			<main class="container">
 				@content
 			</main>
+			<script>
+				document.querySelectorAll("article pre").forEach((pre) => {
+					const code = pre.querySelector(":scope > code");
+					// Ignore visually empty blocks, but preserve original whitespace when copying.
+					if (!code || !code.textContent.trim()) {
+						return;
+					}
+
+					const wrapper = document.createElement("div");
+					wrapper.className = "code-block-wrapper";
+					pre.parentNode.insertBefore(wrapper, pre);
+					wrapper.appendChild(pre);
+
+					const button = document.createElement("button");
+					button.className = "copy-btn";
+					button.type = "button";
+					button.setAttribute("aria-label", "Copy code to clipboard");
+					button.setAttribute("aria-live", "polite");
+					button.setAttribute("aria-atomic", "true");
+					button.textContent = "Copy";
+					wrapper.appendChild(button);
+
+					let resetTimer;
+					button.addEventListener("click", async () => {
+						clearTimeout(resetTimer);
+						button.classList.remove("copied");
+						try {
+							const text = code.textContent ?? pre.textContent ?? "";
+							await navigator.clipboard.writeText(text);
+							button.textContent = "Copied!";
+							button.classList.add("copied");
+						} catch {
+							button.textContent = "Error";
+						}
+						resetTimer = setTimeout(() => {
+							button.textContent = "Copy";
+							button.classList.remove("copied");
+						}, 1500);
+					});
+				});
+			</script>
 		</body>
 	</html>
 }
