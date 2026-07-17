@@ -189,7 +189,7 @@ func (srv *Server) handleMarkdownFile(
 		return true
 	}
 
-	component := MarkdownPage(filename, document.HTML, document.Headings)
+	component := MarkdownPage(filename, document.HTML, document.Headings, string(content))
 	if err := component.Render(request.Context(), writer); err != nil {
 		log.Printf("error rendering markdown page: %v", err)
 	}

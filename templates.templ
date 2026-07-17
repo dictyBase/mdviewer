@@ -186,7 +186,12 @@ templ BaseLayout(title string, content templ.Component) {
 				.github-tab {
 					padding: 0.25rem 0.75rem;
 					border-radius: var(--pico-border-radius);
-					cursor: default;
+					cursor: pointer;
+				background: none;
+				border: none;
+				font-size: inherit;
+				font-family: inherit;
+				line-height: inherit;
 					color: var(--pico-muted-color);
 				}
 				.github-tab.active {
@@ -340,6 +345,24 @@ templ BaseLayout(title string, content templ.Component) {
 						}, 1500);
 					});
 				});
+
+				document.querySelectorAll(".github-tab").forEach((tab) => {
+					tab.addEventListener("click", () => {
+						const view = tab.dataset.view;
+						const box = tab.closest(".github-file-box");
+						box.querySelectorAll(".github-tab").forEach((t) => t.classList.remove("active"));
+						tab.classList.add("active");
+						const article = box.querySelector("article");
+						const raw = box.querySelector(".github-view-raw");
+						if (view === "raw") {
+							article.hidden = true;
+							raw.hidden = false;
+						} else {
+							article.hidden = false;
+							raw.hidden = true;
+						}
+					});
+				});
 			</script>
 		</body>
 	</html>
@@ -375,28 +398,28 @@ templ IndexContent(files []string) {
 }
 
 // Markdown file page
-templ MarkdownPage(filename string, content string, headings []Heading) {
-	@BaseLayout(filename+" - Markdown Viewer", MarkdownContent(filename, content, headings))
+templ MarkdownPage(filename string, content string, headings []Heading, rawMarkdown string) {
+	@BaseLayout(filename+" - Markdown Viewer", MarkdownContent(filename, content, headings, rawMarkdown))
 }
 
-templ MarkdownContent(filename string, content string, headings []Heading) {
+templ MarkdownContent(filename string, content string, headings []Heading, rawMarkdown string) {
 	<div class="github-breadcrumb">
 		<a href="/">← Back</a>
 		<span class="github-breadcrumb-path">{ filename }</span>
 	</div>
 	<div class="github-file-box">
-		<div class="github-file-header">
+		<div class="github-file-header" id="github-file-header">
 			<div class="github-file-header-tabs">
-				<span class="github-tab active">Preview</span>
-				<span class="github-tab">Code</span>
-				<span class="github-tab">Blame</span>
+				<button class="github-tab active" data-view="preview" type="button">Preview</button>
+				<button class="github-tab" data-view="raw" type="button">Raw</button>
 			</div>
 			<div class="github-file-header-actions">
 				<span>{ filename }</span>
 			</div>
 		</div>
-		<article>
+		<article class="github-view-preview">
 			@templ.Raw(content)
 		</article>
+		<pre class="github-view-raw" hidden>{ rawMarkdown }</pre>
 	</div>
 }
