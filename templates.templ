@@ -1,7 +1,5 @@
 package main
 
-import "strconv"
-
 // Base layout template with Pico CSS
 templ BaseLayout(title string, content templ.Component) {
 	<!DOCTYPE html>
@@ -31,16 +29,6 @@ templ BaseLayout(title string, content templ.Component) {
 				}
 				.file-list a:hover {
 					background: var(--pico-secondary-background);
-				}
-				.breadcrumb {
-					margin-bottom: 2rem;
-				}
-				.breadcrumb a {
-					text-decoration: none;
-					color: var(--pico-primary);
-				}
-				.breadcrumb a:hover {
-					text-decoration: underline;
 				}
 				pre {
 					overflow-x: auto;
@@ -158,58 +146,94 @@ templ BaseLayout(title string, content templ.Component) {
 					max-width: 100%;
 					height: auto;
 				}
-				.document-outline {
-					margin-bottom: 1.5rem;
+
+				/* GitHub-style file box */
+				.github-breadcrumb {
+					display: flex;
+					align-items: center;
+					gap: 0.5rem;
+					margin-bottom: 0.75rem;
+					font-size: 0.875rem;
 				}
-				.document-outline h2 {
-					font-size: 1rem;
-					margin-bottom: 0.5rem;
-				}
-				.document-outline ul {
-					list-style: none;
-					padding-left: 0;
-				}
-				.document-outline li {
-					margin: 0.25rem 0;
-				}
-				.document-outline a {
+				.github-breadcrumb a {
 					text-decoration: none;
+					color: var(--pico-primary);
 				}
-				.document-outline a:hover,
-				.document-outline a:focus-visible {
-					text-decoration: underline;
+				.github-breadcrumb-path {
+					color: var(--pico-muted-color);
 				}
-				.outline-level-1 {
-					padding-left: 0;
+
+				.github-file-box {
+					background: var(--pico-background-color);
+					border: 1px solid var(--pico-card-border-color);
+					border-radius: var(--pico-border-radius);
+					overflow: hidden;
 				}
-				.outline-level-2 {
-					padding-left: 0.75rem;
+
+				.github-file-header {
+					background: var(--pico-card-background-color);
+					border-bottom: 1px solid var(--pico-card-border-color);
+					padding: 0.5rem 1rem;
+					display: flex;
+					align-items: center;
+					justify-content: space-between;
+					font-size: 0.8125rem;
 				}
-				.outline-level-3 {
-					padding-left: 1.5rem;
+				.github-file-header-tabs {
+					display: flex;
+					gap: 0.25rem;
 				}
-				.outline-level-4 {
-					padding-left: 2.25rem;
+				.github-tab {
+					padding: 0.25rem 0.75rem;
+					border-radius: var(--pico-border-radius);
+					cursor: default;
+					color: var(--pico-muted-color);
 				}
-				.outline-level-5 {
-					padding-left: 3rem;
+				.github-tab.active {
+					background: var(--pico-background-color);
+					color: var(--pico-color);
+					font-weight: 500;
 				}
-				.outline-level-6 {
-					padding-left: 3.75rem;
+				.github-file-header-actions {
+					display: flex;
+					align-items: center;
+					gap: 0.75rem;
+					color: var(--pico-muted-color);
+					font-size: 0.8125rem;
 				}
-				@media (min-width: 992px) {
-					.document-layout {
-						display: grid;
-						grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
-						gap: 2rem;
-						align-items: start;
-					}
-					.document-outline {
-						position: sticky;
-						top: 1rem;
-						max-height: calc(100vh - 2rem);
-						overflow-y: auto;
-					}
+
+				/* Table grid */
+				.github-file-box article table {
+					border-collapse: collapse;
+					width: 100%;
+					border: 1px solid var(--pico-card-border-color);
+				}
+				.github-file-box article th,
+				.github-file-box article td {
+					border: 1px solid var(--pico-card-border-color);
+					padding: 6px 13px;
+				}
+				.github-file-box article tr:nth-child(even) {
+					background-color: var(--pico-secondary-background);
+				}
+				.github-file-box article th {
+					background-color: var(--pico-card-background-color);
+					font-weight: 600;
+				}
+
+				/* Heading underlines */
+				.github-file-box article h1,
+				.github-file-box article h2 {
+					border-bottom: 1px solid var(--pico-card-border-color);
+					padding-bottom: 0.3em;
+				}
+
+				/* Inline code */
+				.github-file-box article :not(pre) > code {
+					background-color: var(--pico-code-background-color);
+					padding: 0.2em 0.4em;
+					border-radius: 6px;
+					font-size: 85%;
 				}
 			</style>
 		</head>
@@ -356,25 +380,21 @@ templ MarkdownPage(filename string, content string, headings []Heading) {
 }
 
 templ MarkdownContent(filename string, content string, headings []Heading) {
-	<header class="breadcrumb">
-		<nav>
-			<a href="/">← Back to file list</a>
-		</nav>
-		<h1>{ filename }</h1>
-	</header>
-	<div class="document-layout">
-		if len(headings) > 0 {
-			<nav class="document-outline" aria-labelledby="document-outline-title">
-				<h2 id="document-outline-title">On this page</h2>
-				<ul>
-					for _, heading := range headings {
-						<li class={ "outline-level-" + strconv.Itoa(heading.Level) }>
-							<a href={ templ.SafeURL("#" + heading.ID) }>{ heading.Text }</a>
-						</li>
-					}
-				</ul>
-			</nav>
-		}
+	<div class="github-breadcrumb">
+		<a href="/">← Back</a>
+		<span class="github-breadcrumb-path">{ filename }</span>
+	</div>
+	<div class="github-file-box">
+		<div class="github-file-header">
+			<div class="github-file-header-tabs">
+				<span class="github-tab active">Preview</span>
+				<span class="github-tab">Code</span>
+				<span class="github-tab">Blame</span>
+			</div>
+			<div class="github-file-header-actions">
+				<span>{ filename }</span>
+			</div>
+		</div>
 		<article>
 			@templ.Raw(content)
 		</article>
