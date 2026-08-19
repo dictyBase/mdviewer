@@ -247,7 +247,6 @@ templ BaseLayout(title string, content templ.Component) {
 				@content
 			</main>
 			<script>
-				const diagrams = [...document.querySelectorAll(".mermaid")];
 				const showMermaidError = (diagram) => {
 					if (diagram.nextElementSibling?.classList.contains("mermaid-error")) {
 						return;
@@ -261,38 +260,53 @@ templ BaseLayout(title string, content templ.Component) {
 				const restoreMermaidSource = (diagram, source) => {
 					diagram.replaceChildren(document.createTextNode(source));
 				};
-				const renderMermaid = async () => {
+
+				let mermaidScriptPromise;
+				const loadMermaid = () => {
+					if (mermaidScriptPromise) {
+						return mermaidScriptPromise;
+					}
+					mermaidScriptPromise = new Promise((resolve, reject) => {
+						const script = document.createElement("script");
+						script.src = "/_mdviewer/assets/mermaid-11.12.2.min.js";
+						script.onload = () => {
+							try {
+								if (!globalThis.mermaid) {
+									throw new Error("Mermaid runtime unavailable");
+								}
+								globalThis.mermaid.initialize({ startOnLoad: false, securityLevel: "strict" });
+								resolve(globalThis.mermaid);
+							} catch (error) {
+								reject(error);
+							}
+						};
+						script.onerror = reject;
+						document.head.appendChild(script);
+					});
+					return mermaidScriptPromise;
+				};
+
+				const renderMermaid = async (root = document) => {
+					const diagrams = [...root.querySelectorAll(".mermaid")];
 					if (diagrams.length === 0) {
 						return;
 					}
-					const script = document.createElement("script");
-					script.src = "/_mdviewer/assets/mermaid-11.12.2.min.js";
-					script.onload = async () => {
-						try {
-							if (!globalThis.mermaid) {
-								throw new Error("Mermaid runtime unavailable");
+					try {
+						const mermaid = await loadMermaid();
+						for (const diagram of diagrams) {
+							const source = diagram.textContent ?? "";
+							try {
+								await mermaid.run({ nodes: [diagram] });
+							} catch (error) {
+								restoreMermaidSource(diagram, source);
+								console.error("Unable to render Mermaid diagram", error);
+								showMermaidError(diagram);
 							}
-							globalThis.mermaid.initialize({ startOnLoad: false, securityLevel: "strict" });
-							for (const diagram of diagrams) {
-								const source = diagram.textContent ?? "";
-								try {
-									await globalThis.mermaid.run({ nodes: [diagram] });
-								} catch (error) {
-									restoreMermaidSource(diagram, source);
-									console.error("Unable to render Mermaid diagram", error);
-									showMermaidError(diagram);
-								}
-							}
-						} catch (error) {
-							console.error("Unable to render Mermaid diagrams", error);
-							diagrams.forEach((diagram) => showMermaidError(diagram));
 						}
-					};
-					script.onerror = (error) => {
-						console.error("Unable to load Mermaid runtime", error);
+					} catch (error) {
+						console.error("Unable to render Mermaid diagrams", error);
 						diagrams.forEach((diagram) => showMermaidError(diagram));
-					};
-					document.head.appendChild(script);
+					}
 				};
 				void renderMermaid();
 
@@ -302,12 +316,16 @@ templ BaseLayout(title string, content templ.Component) {
 
 				const ERROR_ICON = `<svg aria-hidden="true" focusable="false" height="16" viewBox="0 0 16 16" version="1.1" width="16" fill="currentColor"><path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"></path></svg>`;
 
-				document.querySelectorAll("article pre").forEach((pre) => {
-					const code = pre.querySelector(":scope > code");
-					// Ignore visually empty blocks, but preserve original whitespace when copying.
-					if (!code || !code.textContent.trim()) {
-						return;
-					}
+				const initCopyButtons = (root = document) => {
+					root.querySelectorAll("pre").forEach((pre) => {
+						if (pre.closest(".code-block-wrapper") || pre.closest(".github-view-raw")) {
+							return;
+						}
+						const code = pre.querySelector(":scope > code");
+						// Ignore visually empty blocks, but preserve original whitespace when copying.
+						if (!code || !code.textContent.trim()) {
+							return;
+						}
 
 					const wrapper = document.createElement("div");
 					wrapper.className = "code-block-wrapper";
@@ -345,6 +363,7 @@ templ BaseLayout(title string, content templ.Component) {
 						}, 1500);
 					});
 				});
+				initCopyButtons();
 
 				document.querySelectorAll(".github-tab").forEach((tab) => {
 					tab.addEventListener("click", () => {
@@ -363,6 +382,75 @@ templ BaseLayout(title string, content templ.Component) {
 						}
 					});
 				});
+
+				// Live reload: subscribe to server-sent change events and swap the
+				// preview in place when the file changes, preserving scroll and tab state.
+				const liveReload = () => {
+					const box = document.querySelector(".github-file-box");
+					const article = box?.querySelector(".github-view-preview");
+					const raw = box?.querySelector(".github-view-raw");
+					if (!box || !article || !raw) {
+						return;
+					}
+
+					const initialEtag = box.dataset.contentEtag ?? "";
+					let etag = initialEtag ? `"${initialEtag}"` : "";
+					const url = "/_mdviewer/content" + location.pathname;
+
+					const applyUpdate = async () => {
+						try {
+							const response = await fetch(url, {
+								headers: etag ? { "If-None-Match": etag } : {},
+							});
+							if (response.status === 304) {
+								return;
+							}
+							if (!response.ok) {
+								console.warn("mdviewer: live reload request failed with status", response.status);
+								return;
+							}
+							const data = await response.json();
+							const nextEtag = response.headers.get("ETag");
+							article.innerHTML = data.html;
+							raw.textContent = data.raw;
+							if (nextEtag) {
+								etag = nextEtag;
+							}
+							initCopyButtons(article);
+							void renderMermaid(article);
+						} catch (error) {
+							console.warn("mdviewer: live reload failed", error);
+						}
+					};
+
+					// Fall back to polling if the event stream closes (e.g. server restart).
+					let pollingFallback = false;
+					const startPollingFallback = () => {
+						if (pollingFallback) {
+							return;
+						}
+						pollingFallback = true;
+						const poll = async () => {
+							await applyUpdate();
+							setTimeout(poll, 1000);
+						};
+						void poll();
+					};
+
+					const source = new EventSource("/_mdviewer/events");
+					source.onopen = () => {
+						void applyUpdate();
+					};
+					source.onmessage = () => {
+						void applyUpdate();
+					};
+					source.onerror = () => {
+						if (source.readyState === EventSource.CLOSED) {
+							startPollingFallback();
+						}
+					};
+				};
+				liveReload();
 			</script>
 		</body>
 	</html>
@@ -398,16 +486,16 @@ templ IndexContent(files []string) {
 }
 
 // Markdown file page
-templ MarkdownPage(filename string, content string, headings []Heading, rawMarkdown string) {
-	@BaseLayout(filename+" - Markdown Viewer", MarkdownContent(filename, content, headings, rawMarkdown))
+templ MarkdownPage(filename string, content string, headings []Heading, rawMarkdown string, etag string) {
+	@BaseLayout(filename+" - Markdown Viewer", MarkdownContent(filename, content, headings, rawMarkdown, etag))
 }
 
-templ MarkdownContent(filename string, content string, headings []Heading, rawMarkdown string) {
+templ MarkdownContent(filename string, content string, headings []Heading, rawMarkdown string, etag string) {
 	<div class="github-breadcrumb">
 		<a href="/">← Back</a>
 		<span class="github-breadcrumb-path">{ filename }</span>
 	</div>
-	<div class="github-file-box">
+	<div class="github-file-box" data-content-etag={ etag }>
 		<div class="github-file-header" id="github-file-header">
 			<div class="github-file-header-tabs">
 				<button class="github-tab active" data-view="preview" type="button">Preview</button>

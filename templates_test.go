@@ -20,23 +20,23 @@ func renderComponent(t *testing.T, component templ.Component) string {
 func TestBaseLayoutInitializesMermaidSecurelyAndConditionally(t *testing.T) {
 	t.Parallel()
 
-	html := renderComponent(t, BaseLayout("Test", MarkdownContent("fixture.md", `<pre class="mermaid">graph TD</pre>`, nil, "")))
+	html := renderComponent(t, BaseLayout("Test", MarkdownContent("fixture.md", `<pre class="mermaid">graph TD</pre>`, nil, "", "")))
 	for _, want := range []string{
-		`document.querySelectorAll(".mermaid")`,
+		`root.querySelectorAll(".mermaid")`,
 		`if (diagrams.length === 0)`,
 		`void renderMermaid();`,
-		`const diagrams = [...document.querySelectorAll(".mermaid")]`,
+		`const diagrams = [...root.querySelectorAll(".mermaid")]`,
 		`if (diagrams.length === 0)`,
-		`document.createElement("script")`,
+		`const loadMermaid = () =>`,
+		`mermaidScriptPromise = new Promise((resolve, reject) =>`,
 		`script.src = "/_mdviewer/assets/mermaid-11.12.2.min.js"`,
-		`script.onload = async () =>`,
-		`script.onerror = (error)`,
+		`script.onload = () =>`,
+		`script.onerror = reject`,
 		`if (!globalThis.mermaid)`,
 		`startOnLoad: false`,
 		`securityLevel: "strict"`,
-		`await globalThis.mermaid.run({ nodes: [diagram] })`,
+		`await mermaid.run({ nodes: [diagram] })`,
 		`restoreMermaidSource(diagram, source)`,
-		`console.error("Unable to load Mermaid runtime", error)`,
 		`This diagram could not be rendered. Mermaid source is shown above.`,
 		`message.setAttribute("role", "status")`,
 	} {
@@ -56,7 +56,7 @@ func TestMarkdownContentDoesNotRenderOutline(t *testing.T) {
 		{Level: 1, ID: "overview", Text: "Overview"},
 		{Level: 3, ID: "details", Text: "Details"},
 	}
-	html := renderComponent(t, BaseLayout("Test", MarkdownContent("fixture.md", "<h1>Overview</h1>", headings, "")))
+	html := renderComponent(t, BaseLayout("Test", MarkdownContent("fixture.md", "<h1>Overview</h1>", headings, "", "")))
 	for _, wanted := range []string{
 		"← Back",
 		"github-file-box",
@@ -85,7 +85,7 @@ func TestMarkdownContentDoesNotRenderOutline(t *testing.T) {
 func TestBaseLayoutStylesAllMarkdownAlertTypes(t *testing.T) {
 	t.Parallel()
 
-	html := renderComponent(t, BaseLayout("Test", MarkdownContent("fixture.md", "", nil, "")))
+	html := renderComponent(t, BaseLayout("Test", MarkdownContent("fixture.md", "", nil, "", "")))
 	for _, alertType := range []string{"note", "tip", "important", "warning", "caution"} {
 		if !strings.Contains(html, `.markdown-alert-`+alertType) {
 			t.Errorf("layout does not style %s alerts", alertType)
@@ -102,11 +102,29 @@ func TestBaseLayoutStylesAllMarkdownAlertTypes(t *testing.T) {
 	}
 }
 
+func TestBaseLayoutLiveReloadSubscribesToSSE(t *testing.T) {
+	t.Parallel()
+
+	html := renderComponent(t, BaseLayout("Test", MarkdownContent("fixture.md", "<p>x</p>", nil, "", "")))
+	for _, want := range []string{
+		`new EventSource("/_mdviewer/events")`,
+		`source.onopen`,
+		`source.onmessage`,
+		`source.onerror`,
+		`"If-None-Match": etag`,
+		`const applyUpdate = async () =>`,
+	} {
+		if !strings.Contains(html, want) {
+			t.Errorf("rendered layout does not contain %q", want)
+		}
+	}
+}
+
 func TestBaseLayoutCopyButtonAccessibilityAndContrast(t *testing.T) {
 	t.Parallel()
 
 	var output strings.Builder
-	content := MarkdownContent("fixture.md", "<pre><code>example</code></pre>", nil, "")
+	content := MarkdownContent("fixture.md", "<pre><code>example</code></pre>", nil, "", "")
 	if err := BaseLayout("Test", content).Render(context.Background(), &output); err != nil {
 		t.Fatalf("render BaseLayout: %v", err)
 	}

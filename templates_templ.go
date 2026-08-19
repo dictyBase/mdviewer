@@ -51,7 +51,7 @@ func BaseLayout(title string, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</main><script>\n\t\t\t\tconst diagrams = [...document.querySelectorAll(\".mermaid\")];\n\t\t\t\tconst showMermaidError = (diagram) => {\n\t\t\t\t\tif (diagram.nextElementSibling?.classList.contains(\"mermaid-error\")) {\n\t\t\t\t\t\treturn;\n\t\t\t\t\t}\n\t\t\t\t\tconst message = document.createElement(\"p\");\n\t\t\t\t\tmessage.className = \"mermaid-error\";\n\t\t\t\t\tmessage.setAttribute(\"role\", \"status\");\n\t\t\t\t\tmessage.textContent = \"This diagram could not be rendered. Mermaid source is shown above.\";\n\t\t\t\t\tdiagram.insertAdjacentElement(\"afterend\", message);\n\t\t\t\t};\n\t\t\t\tconst restoreMermaidSource = (diagram, source) => {\n\t\t\t\t\tdiagram.replaceChildren(document.createTextNode(source));\n\t\t\t\t};\n\t\t\t\tconst renderMermaid = async () => {\n\t\t\t\t\tif (diagrams.length === 0) {\n\t\t\t\t\t\treturn;\n\t\t\t\t\t}\n\t\t\t\t\tconst script = document.createElement(\"script\");\n\t\t\t\t\tscript.src = \"/_mdviewer/assets/mermaid-11.12.2.min.js\";\n\t\t\t\t\tscript.onload = async () => {\n\t\t\t\t\t\ttry {\n\t\t\t\t\t\t\tif (!globalThis.mermaid) {\n\t\t\t\t\t\t\t\tthrow new Error(\"Mermaid runtime unavailable\");\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\tglobalThis.mermaid.initialize({ startOnLoad: false, securityLevel: \"strict\" });\n\t\t\t\t\t\t\tfor (const diagram of diagrams) {\n\t\t\t\t\t\t\t\tconst source = diagram.textContent ?? \"\";\n\t\t\t\t\t\t\t\ttry {\n\t\t\t\t\t\t\t\t\tawait globalThis.mermaid.run({ nodes: [diagram] });\n\t\t\t\t\t\t\t\t} catch (error) {\n\t\t\t\t\t\t\t\t\trestoreMermaidSource(diagram, source);\n\t\t\t\t\t\t\t\t\tconsole.error(\"Unable to render Mermaid diagram\", error);\n\t\t\t\t\t\t\t\t\tshowMermaidError(diagram);\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t} catch (error) {\n\t\t\t\t\t\t\tconsole.error(\"Unable to render Mermaid diagrams\", error);\n\t\t\t\t\t\t\tdiagrams.forEach((diagram) => showMermaidError(diagram));\n\t\t\t\t\t\t}\n\t\t\t\t\t};\n\t\t\t\t\tscript.onerror = (error) => {\n\t\t\t\t\t\tconsole.error(\"Unable to load Mermaid runtime\", error);\n\t\t\t\t\t\tdiagrams.forEach((diagram) => showMermaidError(diagram));\n\t\t\t\t\t};\n\t\t\t\t\tdocument.head.appendChild(script);\n\t\t\t\t};\n\t\t\t\tvoid renderMermaid();\n\n\t\t\t\tconst COPY_ICON = `<svg aria-hidden=\"true\" focusable=\"false\" height=\"16\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" fill=\"currentColor\"><path d=\"M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z\"></path><path d=\"M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z\"></path></svg>`;\n\n\t\t\t\tconst CHECK_ICON = `<svg aria-hidden=\"true\" focusable=\"false\" height=\"16\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" fill=\"currentColor\"><path d=\"M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z\"></path></svg>`;\n\n\t\t\t\tconst ERROR_ICON = `<svg aria-hidden=\"true\" focusable=\"false\" height=\"16\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" fill=\"currentColor\"><path d=\"M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z\"></path></svg>`;\n\n\t\t\t\tdocument.querySelectorAll(\"article pre\").forEach((pre) => {\n\t\t\t\t\tconst code = pre.querySelector(\":scope > code\");\n\t\t\t\t\t// Ignore visually empty blocks, but preserve original whitespace when copying.\n\t\t\t\t\tif (!code || !code.textContent.trim()) {\n\t\t\t\t\t\treturn;\n\t\t\t\t\t}\n\n\t\t\t\t\tconst wrapper = document.createElement(\"div\");\n\t\t\t\t\twrapper.className = \"code-block-wrapper\";\n\t\t\t\t\tpre.parentNode.insertBefore(wrapper, pre);\n\t\t\t\t\twrapper.appendChild(pre);\n\n\t\t\t\t\tconst button = document.createElement(\"button\");\n\t\t\t\t\tbutton.className = \"copy-btn\";\n\t\t\t\t\tbutton.type = \"button\";\n\t\t\t\t\tbutton.setAttribute(\"aria-label\", \"Copy code to clipboard\");\n\t\t\t\t\tbutton.setAttribute(\"aria-live\", \"polite\");\n\t\t\t\t\tbutton.setAttribute(\"aria-atomic\", \"true\");\n\t\t\t\t\tbutton.innerHTML = COPY_ICON;\n\t\t\t\t\twrapper.appendChild(button);\n\n\t\t\t\t\tlet resetTimer;\n\t\t\t\t\tbutton.addEventListener(\"click\", async () => {\n\t\t\t\t\t\tclearTimeout(resetTimer);\n\t\t\t\t\t\tbutton.classList.remove(\"copied\", \"error\");\n\t\t\t\t\t\ttry {\n\t\t\t\t\t\t\tconst text = code.textContent ?? pre.textContent ?? \"\";\n\t\t\t\t\t\t\tawait navigator.clipboard.writeText(text);\n\t\t\t\t\t\t\tbutton.innerHTML = CHECK_ICON;\n\t\t\t\t\t\t\tbutton.setAttribute(\"aria-label\", \"Copied!\");\n\t\t\t\t\t\t\tbutton.classList.add(\"copied\");\n\t\t\t\t\t\t} catch {\n\t\t\t\t\t\t\tbutton.innerHTML = ERROR_ICON;\n\t\t\t\t\t\t\tbutton.setAttribute(\"aria-label\", \"Error copying code\");\n\t\t\t\t\t\t\tbutton.classList.add(\"error\");\n\t\t\t\t\t\t}\n\t\t\t\t\t\tresetTimer = setTimeout(() => {\n\t\t\t\t\t\t\tbutton.innerHTML = COPY_ICON;\n\t\t\t\t\t\t\tbutton.setAttribute(\"aria-label\", \"Copy code to clipboard\");\n\t\t\t\t\t\t\tbutton.classList.remove(\"copied\", \"error\");\n\t\t\t\t\t\t}, 1500);\n\t\t\t\t\t});\n\t\t\t\t});\n\n\t\t\t\tdocument.querySelectorAll(\".github-tab\").forEach((tab) => {\n\t\t\t\t\ttab.addEventListener(\"click\", () => {\n\t\t\t\t\t\tconst view = tab.dataset.view;\n\t\t\t\t\t\tconst box = tab.closest(\".github-file-box\");\n\t\t\t\t\t\tbox.querySelectorAll(\".github-tab\").forEach((t) => t.classList.remove(\"active\"));\n\t\t\t\t\t\ttab.classList.add(\"active\");\n\t\t\t\t\t\tconst article = box.querySelector(\"article\");\n\t\t\t\t\t\tconst raw = box.querySelector(\".github-view-raw\");\n\t\t\t\t\t\tif (view === \"raw\") {\n\t\t\t\t\t\t\tarticle.hidden = true;\n\t\t\t\t\t\t\traw.hidden = false;\n\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\tarticle.hidden = false;\n\t\t\t\t\t\t\traw.hidden = true;\n\t\t\t\t\t\t}\n\t\t\t\t\t});\n\t\t\t\t});\n\t\t\t</script></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</main><script>\n\t\t\t\tconst showMermaidError = (diagram) => {\n\t\t\t\t\tif (diagram.nextElementSibling?.classList.contains(\"mermaid-error\")) {\n\t\t\t\t\t\treturn;\n\t\t\t\t\t}\n\t\t\t\t\tconst message = document.createElement(\"p\");\n\t\t\t\t\tmessage.className = \"mermaid-error\";\n\t\t\t\t\tmessage.setAttribute(\"role\", \"status\");\n\t\t\t\t\tmessage.textContent = \"This diagram could not be rendered. Mermaid source is shown above.\";\n\t\t\t\t\tdiagram.insertAdjacentElement(\"afterend\", message);\n\t\t\t\t};\n\t\t\t\tconst restoreMermaidSource = (diagram, source) => {\n\t\t\t\t\tdiagram.replaceChildren(document.createTextNode(source));\n\t\t\t\t};\n\n\t\t\t\tlet mermaidScriptPromise;\n\t\t\t\tconst loadMermaid = () => {\n\t\t\t\t\tif (mermaidScriptPromise) {\n\t\t\t\t\t\treturn mermaidScriptPromise;\n\t\t\t\t\t}\n\t\t\t\t\tmermaidScriptPromise = new Promise((resolve, reject) => {\n\t\t\t\t\t\tconst script = document.createElement(\"script\");\n\t\t\t\t\t\tscript.src = \"/_mdviewer/assets/mermaid-11.12.2.min.js\";\n\t\t\t\t\t\tscript.onload = () => {\n\t\t\t\t\t\t\ttry {\n\t\t\t\t\t\t\t\tif (!globalThis.mermaid) {\n\t\t\t\t\t\t\t\t\tthrow new Error(\"Mermaid runtime unavailable\");\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\tglobalThis.mermaid.initialize({ startOnLoad: false, securityLevel: \"strict\" });\n\t\t\t\t\t\t\t\tresolve(globalThis.mermaid);\n\t\t\t\t\t\t\t} catch (error) {\n\t\t\t\t\t\t\t\treject(error);\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t};\n\t\t\t\t\t\tscript.onerror = reject;\n\t\t\t\t\t\tdocument.head.appendChild(script);\n\t\t\t\t\t});\n\t\t\t\t\treturn mermaidScriptPromise;\n\t\t\t\t};\n\n\t\t\t\tconst renderMermaid = async (root = document) => {\n\t\t\t\t\tconst diagrams = [...root.querySelectorAll(\".mermaid\")];\n\t\t\t\t\tif (diagrams.length === 0) {\n\t\t\t\t\t\treturn;\n\t\t\t\t\t}\n\t\t\t\t\ttry {\n\t\t\t\t\t\tconst mermaid = await loadMermaid();\n\t\t\t\t\t\tfor (const diagram of diagrams) {\n\t\t\t\t\t\t\tconst source = diagram.textContent ?? \"\";\n\t\t\t\t\t\t\ttry {\n\t\t\t\t\t\t\t\tawait mermaid.run({ nodes: [diagram] });\n\t\t\t\t\t\t\t} catch (error) {\n\t\t\t\t\t\t\t\trestoreMermaidSource(diagram, source);\n\t\t\t\t\t\t\t\tconsole.error(\"Unable to render Mermaid diagram\", error);\n\t\t\t\t\t\t\t\tshowMermaidError(diagram);\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t} catch (error) {\n\t\t\t\t\t\tconsole.error(\"Unable to render Mermaid diagrams\", error);\n\t\t\t\t\t\tdiagrams.forEach((diagram) => showMermaidError(diagram));\n\t\t\t\t\t}\n\t\t\t\t};\n\t\t\t\tvoid renderMermaid();\n\n\t\t\t\tconst COPY_ICON = `<svg aria-hidden=\"true\" focusable=\"false\" height=\"16\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" fill=\"currentColor\"><path d=\"M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z\"></path><path d=\"M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z\"></path></svg>`;\n\n\t\t\t\tconst CHECK_ICON = `<svg aria-hidden=\"true\" focusable=\"false\" height=\"16\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" fill=\"currentColor\"><path d=\"M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z\"></path></svg>`;\n\n\t\t\t\tconst ERROR_ICON = `<svg aria-hidden=\"true\" focusable=\"false\" height=\"16\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" fill=\"currentColor\"><path d=\"M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z\"></path></svg>`;\n\n\t\t\t\tconst initCopyButtons = (root = document) => {\n\t\t\t\t\troot.querySelectorAll(\"pre\").forEach((pre) => {\n\t\t\t\t\t\tif (pre.closest(\".code-block-wrapper\") || pre.closest(\".github-view-raw\")) {\n\t\t\t\t\t\t\treturn;\n\t\t\t\t\t\t}\n\t\t\t\t\t\tconst code = pre.querySelector(\":scope > code\");\n\t\t\t\t\t\t// Ignore visually empty blocks, but preserve original whitespace when copying.\n\t\t\t\t\t\tif (!code || !code.textContent.trim()) {\n\t\t\t\t\t\t\treturn;\n\t\t\t\t\t\t}\n\n\t\t\t\t\tconst wrapper = document.createElement(\"div\");\n\t\t\t\t\twrapper.className = \"code-block-wrapper\";\n\t\t\t\t\tpre.parentNode.insertBefore(wrapper, pre);\n\t\t\t\t\twrapper.appendChild(pre);\n\n\t\t\t\t\tconst button = document.createElement(\"button\");\n\t\t\t\t\tbutton.className = \"copy-btn\";\n\t\t\t\t\tbutton.type = \"button\";\n\t\t\t\t\tbutton.setAttribute(\"aria-label\", \"Copy code to clipboard\");\n\t\t\t\t\tbutton.setAttribute(\"aria-live\", \"polite\");\n\t\t\t\t\tbutton.setAttribute(\"aria-atomic\", \"true\");\n\t\t\t\t\tbutton.innerHTML = COPY_ICON;\n\t\t\t\t\twrapper.appendChild(button);\n\n\t\t\t\t\tlet resetTimer;\n\t\t\t\t\tbutton.addEventListener(\"click\", async () => {\n\t\t\t\t\t\tclearTimeout(resetTimer);\n\t\t\t\t\t\tbutton.classList.remove(\"copied\", \"error\");\n\t\t\t\t\t\ttry {\n\t\t\t\t\t\t\tconst text = code.textContent ?? pre.textContent ?? \"\";\n\t\t\t\t\t\t\tawait navigator.clipboard.writeText(text);\n\t\t\t\t\t\t\tbutton.innerHTML = CHECK_ICON;\n\t\t\t\t\t\t\tbutton.setAttribute(\"aria-label\", \"Copied!\");\n\t\t\t\t\t\t\tbutton.classList.add(\"copied\");\n\t\t\t\t\t\t} catch {\n\t\t\t\t\t\t\tbutton.innerHTML = ERROR_ICON;\n\t\t\t\t\t\t\tbutton.setAttribute(\"aria-label\", \"Error copying code\");\n\t\t\t\t\t\t\tbutton.classList.add(\"error\");\n\t\t\t\t\t\t}\n\t\t\t\t\t\tresetTimer = setTimeout(() => {\n\t\t\t\t\t\t\tbutton.innerHTML = COPY_ICON;\n\t\t\t\t\t\t\tbutton.setAttribute(\"aria-label\", \"Copy code to clipboard\");\n\t\t\t\t\t\t\tbutton.classList.remove(\"copied\", \"error\");\n\t\t\t\t\t\t}, 1500);\n\t\t\t\t\t});\n\t\t\t\t});\n\t\t\t\tinitCopyButtons();\n\n\t\t\t\tdocument.querySelectorAll(\".github-tab\").forEach((tab) => {\n\t\t\t\t\ttab.addEventListener(\"click\", () => {\n\t\t\t\t\t\tconst view = tab.dataset.view;\n\t\t\t\t\t\tconst box = tab.closest(\".github-file-box\");\n\t\t\t\t\t\tbox.querySelectorAll(\".github-tab\").forEach((t) => t.classList.remove(\"active\"));\n\t\t\t\t\t\ttab.classList.add(\"active\");\n\t\t\t\t\t\tconst article = box.querySelector(\"article\");\n\t\t\t\t\t\tconst raw = box.querySelector(\".github-view-raw\");\n\t\t\t\t\t\tif (view === \"raw\") {\n\t\t\t\t\t\t\tarticle.hidden = true;\n\t\t\t\t\t\t\traw.hidden = false;\n\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\tarticle.hidden = false;\n\t\t\t\t\t\t\traw.hidden = true;\n\t\t\t\t\t\t}\n\t\t\t\t\t});\n\t\t\t\t});\n\n\t\t\t\t// Live reload: subscribe to server-sent change events and swap the\n\t\t\t\t// preview in place when the file changes, preserving scroll and tab state.\n\t\t\t\tconst liveReload = () => {\n\t\t\t\t\tconst box = document.querySelector(\".github-file-box\");\n\t\t\t\t\tconst article = box?.querySelector(\".github-view-preview\");\n\t\t\t\t\tconst raw = box?.querySelector(\".github-view-raw\");\n\t\t\t\t\tif (!box || !article || !raw) {\n\t\t\t\t\t\treturn;\n\t\t\t\t\t}\n\n\t\t\t\t\tconst initialEtag = box.dataset.contentEtag ?? \"\";\n\t\t\t\t\tlet etag = initialEtag ? `\"${initialEtag}\"` : \"\";\n\t\t\t\t\tconst url = \"/_mdviewer/content\" + location.pathname;\n\n\t\t\t\t\tconst applyUpdate = async () => {\n\t\t\t\t\t\ttry {\n\t\t\t\t\t\t\tconst response = await fetch(url, {\n\t\t\t\t\t\t\t\theaders: etag ? { \"If-None-Match\": etag } : {},\n\t\t\t\t\t\t\t});\n\t\t\t\t\t\t\tif (response.status === 304) {\n\t\t\t\t\t\t\t\treturn;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\tif (!response.ok) {\n\t\t\t\t\t\t\t\tconsole.warn(\"mdviewer: live reload request failed with status\", response.status);\n\t\t\t\t\t\t\t\treturn;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\tconst data = await response.json();\n\t\t\t\t\t\t\tconst nextEtag = response.headers.get(\"ETag\");\n\t\t\t\t\t\t\tarticle.innerHTML = data.html;\n\t\t\t\t\t\t\traw.textContent = data.raw;\n\t\t\t\t\t\t\tif (nextEtag) {\n\t\t\t\t\t\t\t\tetag = nextEtag;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\tinitCopyButtons(article);\n\t\t\t\t\t\t\tvoid renderMermaid(article);\n\t\t\t\t\t\t} catch (error) {\n\t\t\t\t\t\t\tconsole.warn(\"mdviewer: live reload failed\", error);\n\t\t\t\t\t\t}\n\t\t\t\t\t};\n\n\t\t\t\t\t// Fall back to polling if the event stream closes (e.g. server restart).\n\t\t\t\t\tlet pollingFallback = false;\n\t\t\t\t\tconst startPollingFallback = () => {\n\t\t\t\t\t\tif (pollingFallback) {\n\t\t\t\t\t\t\treturn;\n\t\t\t\t\t\t}\n\t\t\t\t\t\tpollingFallback = true;\n\t\t\t\t\t\tconst poll = async () => {\n\t\t\t\t\t\t\tawait applyUpdate();\n\t\t\t\t\t\t\tsetTimeout(poll, 1000);\n\t\t\t\t\t\t};\n\t\t\t\t\t\tvoid poll();\n\t\t\t\t\t};\n\n\t\t\t\t\tconst source = new EventSource(\"/_mdviewer/events\");\n\t\t\t\t\tsource.onopen = () => {\n\t\t\t\t\t\tvoid applyUpdate();\n\t\t\t\t\t};\n\t\t\t\t\tsource.onmessage = () => {\n\t\t\t\t\t\tvoid applyUpdate();\n\t\t\t\t\t};\n\t\t\t\t\tsource.onerror = () => {\n\t\t\t\t\t\tif (source.readyState === EventSource.CLOSED) {\n\t\t\t\t\t\t\tstartPollingFallback();\n\t\t\t\t\t\t}\n\t\t\t\t\t};\n\t\t\t\t};\n\t\t\t\tliveReload();\n\t\t\t</script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -132,7 +132,7 @@ func IndexContent(files []string) templ.Component {
 				var templ_7745c5c3_Var5 templ.SafeURL
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL("/" + removeMarkdownExt(file)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 390, Col: 60}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 478, Col: 60}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -145,7 +145,7 @@ func IndexContent(files []string) templ.Component {
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(file)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 391, Col: 13}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 479, Col: 13}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
@@ -166,7 +166,7 @@ func IndexContent(files []string) templ.Component {
 }
 
 // Markdown file page
-func MarkdownPage(filename string, content string, headings []Heading, rawMarkdown string) templ.Component {
+func MarkdownPage(filename string, content string, headings []Heading, rawMarkdown string, etag string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -187,7 +187,7 @@ func MarkdownPage(filename string, content string, headings []Heading, rawMarkdo
 			templ_7745c5c3_Var7 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = BaseLayout(filename+" - Markdown Viewer", MarkdownContent(filename, content, headings, rawMarkdown)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = BaseLayout(filename+" - Markdown Viewer", MarkdownContent(filename, content, headings, rawMarkdown, etag)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -195,7 +195,7 @@ func MarkdownPage(filename string, content string, headings []Heading, rawMarkdo
 	})
 }
 
-func MarkdownContent(filename string, content string, headings []Heading, rawMarkdown string) templ.Component {
+func MarkdownContent(filename string, content string, headings []Heading, rawMarkdown string, etag string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -223,26 +223,39 @@ func MarkdownContent(filename string, content string, headings []Heading, rawMar
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(filename)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 408, Col: 49}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 496, Col: 49}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span></div><div class=\"github-file-box\"><div class=\"github-file-header\" id=\"github-file-header\"><div class=\"github-file-header-tabs\"><button class=\"github-tab active\" data-view=\"preview\" type=\"button\">Preview</button> <button class=\"github-tab\" data-view=\"raw\" type=\"button\">Raw</button></div><div class=\"github-file-header-actions\"><span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span></div><div class=\"github-file-box\" data-content-etag=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var10 string
-		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(filename)
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(etag)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 417, Col: 20}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 498, Col: 54}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span></div></div><article class=\"github-view-preview\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\"><div class=\"github-file-header\" id=\"github-file-header\"><div class=\"github-file-header-tabs\"><button class=\"github-tab active\" data-view=\"preview\" type=\"button\">Preview</button> <button class=\"github-tab\" data-view=\"raw\" type=\"button\">Raw</button></div><div class=\"github-file-header-actions\"><span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var11 string
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(filename)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 505, Col: 20}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</span></div></div><article class=\"github-view-preview\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -250,20 +263,20 @@ func MarkdownContent(filename string, content string, headings []Heading, rawMar
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</article><pre class=\"github-view-raw\" hidden>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</article><pre class=\"github-view-raw\" hidden>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var11 string
-		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(rawMarkdown)
+		var templ_7745c5c3_Var12 string
+		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(rawMarkdown)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 423, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates.templ`, Line: 511, Col: 51}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</pre></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</pre></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
