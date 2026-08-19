@@ -1,12 +1,17 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 )
 
 func TestStaticAssets(t *testing.T) {
@@ -227,6 +232,121 @@ func TestEmbeddedMermaidRuntime(t *testing.T) {
 	}
 }
 
+func TestContentFragmentReturnsRenderedAndRawContent(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	raw := "# Heading\n\nSome *content*.\n"
+	writeTestFile(t, root, "guide.md", []byte(raw))
+
+	response := serveRequest(NewServer(root), "/_mdviewer/content/guide")
+	if response.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d; body = %q", response.Code, http.StatusOK, response.Body.String())
+	}
+
+	var fragment contentFragment
+	if err := json.Unmarshal(response.Body.Bytes(), &fragment); err != nil {
+		t.Fatalf("decode fragment: %v", err)
+	}
+	if fragment.Raw != raw {
+		t.Errorf("raw = %q, want %q", fragment.Raw, raw)
+	}
+	if !strings.Contains(fragment.HTML, "<h1") {
+		t.Errorf("html does not contain rendered heading: %q", fragment.HTML)
+	}
+
+	wantETag := fmt.Sprintf("%q", contentETag([]byte(raw)))
+	if got := response.Header().Get("ETag"); got != wantETag {
+		t.Errorf("ETag = %q, want %q", got, wantETag)
+	}
+	if got := response.Header().Get("Cache-Control"); got != "no-cache" {
+		t.Errorf("Cache-Control = %q, want no-cache", got)
+	}
+}
+
+func TestContentFragmentNotModifiedWhenETagMatches(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	raw := "# Heading\n"
+	writeTestFile(t, root, "guide.md", []byte(raw))
+
+	request := httptest.NewRequest(http.MethodGet, "/_mdviewer/content/guide", nil)
+	request.Header.Set("If-None-Match", fmt.Sprintf("%q", contentETag([]byte(raw))))
+	response := httptest.NewRecorder()
+	NewServer(root).ServeHTTP(response, request)
+
+	if response.Code != http.StatusNotModified {
+		t.Fatalf("status = %d, want %d", response.Code, http.StatusNotModified)
+	}
+	if response.Body.Len() != 0 {
+		t.Errorf("body length = %d, want 0", response.Body.Len())
+	}
+}
+
+func TestContentFragmentSameSizeChangeProducesDifferentETag(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	writeTestFile(t, root, "guide.md", []byte("aaaa"))
+	server := NewServer(root)
+
+	first := serveRequest(server, "/_mdviewer/content/guide")
+	firstETag := first.Header().Get("ETag")
+
+	writeTestFile(t, root, "guide.md", []byte("bbbb"))
+	second := serveRequest(server, "/_mdviewer/content/guide")
+	secondETag := second.Header().Get("ETag")
+
+	if firstETag == "" || secondETag == "" {
+		t.Fatalf("missing ETag: first = %q, second = %q", firstETag, secondETag)
+	}
+	if firstETag == secondETag {
+		t.Errorf("same-size content change did not alter ETag: %q", firstETag)
+	}
+}
+
+func TestContentFragmentRejectsMissingOrUnsafePaths(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	writeTestFile(t, root, "guide.md", []byte("# Guide\n"))
+	server := NewServer(root)
+
+	for _, requestPath := range []string{
+		"/_mdviewer/content/missing",
+		"/_mdviewer/content/../outside",
+		"/_mdviewer/content/.env",
+	} {
+		t.Run(requestPath, func(t *testing.T) {
+			t.Parallel()
+
+			response := serveRequest(server, requestPath)
+			if response.Code != http.StatusNotFound {
+				t.Fatalf("status = %d, want %d", response.Code, http.StatusNotFound)
+			}
+		})
+	}
+}
+
+func TestMarkdownPageEmbedsContentETag(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	raw := "# Guide\n"
+	writeTestFile(t, root, "guide.md", []byte(raw))
+
+	response := serveRequest(NewServer(root), "/guide")
+	if response.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", response.Code, http.StatusOK)
+	}
+
+	want := fmt.Sprintf(`data-content-etag="%s"`, contentETag([]byte(raw)))
+	if !strings.Contains(response.Body.String(), want) {
+		t.Errorf("page does not embed %q", want)
+	}
+}
+
 func writeTestFile(t *testing.T, root, name string, content []byte) {
 	t.Helper()
 	path := filepath.Join(root, filepath.FromSlash(name))
@@ -243,4 +363,113 @@ func serveRequest(handler http.Handler, target string) *httptest.ResponseRecorde
 	response := httptest.NewRecorder()
 	handler.ServeHTTP(response, request)
 	return response
+}
+
+// streamRecorder is a concurrency-safe ResponseWriter that captures streaming
+// (SSE) output. httptest.ResponseRecorder buffers but is not safe to read while
+// a handler goroutine is still writing, so SSE tests use this instead.
+type streamRecorder struct {
+	mu     sync.Mutex
+	header http.Header
+	body   strings.Builder
+	code   int
+}
+
+func (r *streamRecorder) Header() http.Header {
+	if r.header == nil {
+		r.header = make(http.Header)
+	}
+	return r.header
+}
+
+func (r *streamRecorder) Write(data []byte) (int, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.code == 0 {
+		r.code = http.StatusOK
+	}
+	written, _ := r.body.Write(data)
+	return written, nil
+}
+
+func (r *streamRecorder) WriteHeader(code int) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.code == 0 {
+		r.code = code
+	}
+}
+
+// Flush is a no-op, as required by the http.Flusher interface.
+func (r *streamRecorder) Flush() {}
+
+func (r *streamRecorder) String() string {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.body.String()
+}
+
+func TestSSEStreamsChangeEvents(t *testing.T) {
+	t.Parallel()
+
+	server := NewServer(t.TempDir())
+
+	ctx, cancel := context.WithCancel(context.Background())
+	request := httptest.NewRequest(http.MethodGet, eventsPath, nil).WithContext(ctx)
+	response := &streamRecorder{}
+
+	done := make(chan struct{})
+	go func() {
+		server.ServeHTTP(response, request)
+		close(done)
+	}()
+
+	// Wait for the initial connection comment, then deliver a change.
+	waitFor := func(want string) {
+		deadline := time.Now().Add(2 * time.Second)
+		for !strings.Contains(response.String(), want) && time.Now().Before(deadline) {
+			time.Sleep(5 * time.Millisecond)
+		}
+	}
+
+	waitFor(": connected")
+	server.hub.broadcast()
+	waitFor("data: reload")
+
+	cancel()
+	<-done
+
+	if response.code != http.StatusOK {
+		t.Errorf("status = %d, want %d", response.code, http.StatusOK)
+	}
+	if ct := response.Header().Get("Content-Type"); ct != "text/event-stream" {
+		t.Errorf("Content-Type = %q, want text/event-stream", ct)
+	}
+	if body := response.String(); !strings.Contains(body, "data: reload") {
+		t.Errorf("SSE body missing change event: %q", body)
+	}
+}
+
+func TestFileWatcherBroadcastsOnChange(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	server := NewServer(root)
+
+	stop, err := server.startFileWatcher(root)
+	if err != nil {
+		t.Fatalf("startFileWatcher: %v", err)
+	}
+	defer stop()
+
+	sub := server.hub.subscribe()
+	defer server.hub.unsubscribe(sub)
+
+	writeTestFile(t, root, "guide.md", []byte("# Hello\n"))
+
+	select {
+	case <-sub:
+	case <-time.After(5 * time.Second):
+		t.Fatal("no change broadcast after file write")
+	}
 }
