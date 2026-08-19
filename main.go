@@ -135,7 +135,8 @@ func (srv *Server) handleMermaidRuntime(writer http.ResponseWriter, request *htt
 }
 
 // contentFragment holds the rendered and raw markdown for a single document.
-// The client polls this endpoint to live-reload the preview without a full page refresh.
+// The client fetches this endpoint on an SSE change event (or polling fallback)
+// to swap the preview in place without a full page refresh.
 type contentFragment struct {
 	HTML string `json:"html"`
 	Raw  string `json:"raw"`
@@ -344,7 +345,7 @@ func handleWatchEvent(watcher *fsnotify.Watcher, relay *changeRelay, event fsnot
 
 	if event.Op&fsnotify.Create != 0 {
 		if info, statErr := os.Stat(event.Name); statErr == nil && info.IsDir() {
-			_ = watcher.Add(event.Name)
+			_ = addWatchTree(watcher, event.Name)
 		}
 	}
 	if event.Op&relevantOps != 0 {
