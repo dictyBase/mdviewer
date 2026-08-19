@@ -11,5 +11,5 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
-      - run: go run github.com/a-h/templ/cmd/templ@v0.3.1020 generate
-      - run: git diff --exit-code -- templates_templ.go
+      - run: go run github.com/a-h/templ/cmd/templ@v0.3.1020 generate -path internal/viewer
+      - run: git diff --exit-code -- internal/viewer/templates_templ.go

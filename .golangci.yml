@@ -65,6 +65,9 @@ linters:
             - - ID
     testifylint:
       enable-all: true
+    wrapcheck:
+      ignore-package-globs:
+        - mdviewer/internal/viewer
   exclusions:
     generated: lax
     presets:
@@ -81,6 +84,14 @@ formatters:
     - gci
     - gofmt
     - goimports
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(mdviewer)
+    goimports:
+      local-prefixes: mdviewer
   exclusions:
     generated: lax
     paths:
