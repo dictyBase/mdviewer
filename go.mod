@@ -3,7 +3,7 @@ module mdviewer
 go 1.26.0
 
 require (
-	github.com/a-h/templ v0.3.1100
+	github.com/a-h/templ v0.3.1118
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/urfave/cli/v2 v2.27.7
 	github.com/yuin/goldmark v1.8.7
@@ -18,6 +18,6 @@ require (
 	github.com/dlclark/regexp2 v1.11.5 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20250705151800-55b8f293f342 // indirect
-	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
